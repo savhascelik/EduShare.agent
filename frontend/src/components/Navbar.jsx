@@ -101,14 +101,14 @@ export const Navbar = ({
                 className="flex items-center space-x-2 px-2.5 py-1.5 rounded-full bg-slate-50 hover:bg-slate-100 border border-slate-200 text-left transition-all"
               >
                 <div className="w-7 h-7 rounded-full bg-amber-100 text-amber-900 flex items-center justify-center font-bold text-xs border border-amber-300">
-                  {currentSchool.name.substring(0, 2).toUpperCase()}
+                  {(currentSchool?.name || 'Okul').substring(0, 2).toUpperCase()}
                 </div>
                 <div className="hidden xl:block">
                   <div className="text-xs font-bold text-slate-900 truncate max-w-[110px]">
-                    {currentSchool.name}
+                    {currentSchool?.name || 'Okul'}
                   </div>
                   <div className="text-[10px] text-slate-400">
-                    {currentSchool.district}
+                    {currentSchool?.district || 'İstanbul'}
                   </div>
                 </div>
               </button>

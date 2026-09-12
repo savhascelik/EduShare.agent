@@ -213,11 +213,13 @@ function MainApp() {
       <AuthModal
         isOpen={isAuthOpen}
         onClose={() => setIsAuthOpen(false)}
+        onAuthSuccess={() => loadDashboardData()}
       />
 
       <ProfileModal
         isOpen={isProfileOpen}
         onClose={() => setIsProfileOpen(false)}
+        onProfileUpdated={() => loadDashboardData()}
       />
 
     </div>
