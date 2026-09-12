@@ -13,6 +13,7 @@ import { NeedModal } from './components/NeedModal';
 import { AuthModal } from './components/AuthModal';
 import { ProfileModal } from './components/ProfileModal';
 import { RecentActivityFeed } from './components/RecentActivityFeed';
+import { MobileBottomNav } from './components/MobileBottomNav';
 
 function MainApp() {
   const { t } = useTranslation();
@@ -90,7 +91,7 @@ function MainApp() {
   ).length;
 
   return (
-    <div className="min-h-screen bg-gradient-to-b from-slate-50 via-white to-slate-100/60 text-slate-900 font-sans flex flex-col">
+    <div className="min-h-screen bg-[#FDFBF7] text-slate-900 font-sans flex flex-col selection:bg-amber-100 selection:text-amber-900">
       
       {/* Top Navbar */}
       <Navbar
@@ -102,29 +103,29 @@ function MainApp() {
         pendingCount={pendingApprovalsCount}
       />
 
-      {/* Main Content Area */}
-      <main className="flex-1 max-w-7xl w-full mx-auto px-4 sm:px-6 lg:px-8 py-6 space-y-6">
+      {/* Main Content Area (extra bottom padding for mobile bar) */}
+      <main className="flex-1 max-w-7xl w-full mx-auto px-4 sm:px-6 lg:px-8 py-5 space-y-6 pb-24 md:pb-10">
         
         {/* Banner Alert for Pending HITL Tasks */}
         {pendingApprovalsCount > 0 && (
-          <div className="p-4 rounded-2xl bg-gradient-to-r from-amber-500/15 via-amber-500/10 to-transparent border border-amber-300 flex items-center justify-between shadow-xs">
+          <div className="p-4 rounded-3xl bg-gradient-to-r from-amber-500/15 via-amber-500/10 to-transparent border border-amber-300/80 flex flex-col sm:flex-row sm:items-center justify-between gap-3 shadow-2xs">
             <div className="flex items-center space-x-3">
-              <span className="flex h-3 w-3 relative">
+              <span className="flex h-3 w-3 relative shrink-0">
                 <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-amber-400 opacity-75"></span>
                 <span className="relative inline-flex rounded-full h-3 w-3 bg-amber-500"></span>
               </span>
               <div>
-                <span className="text-xs font-bold text-amber-950 uppercase tracking-wide">
+                <span className="text-[11px] font-bold text-amber-950 uppercase tracking-wide">
                   {t('hitl.bannerTitle')}
                 </span>
-                <p className="text-sm font-semibold text-amber-900">
+                <p className="text-xs sm:text-sm font-semibold text-amber-900 leading-snug">
                   {t('hitl.bannerText', { count: pendingApprovalsCount })}
                 </p>
               </div>
             </div>
             <button
               onClick={() => setIsHITLOpen(true)}
-              className="px-4 py-2 rounded-xl bg-amber-600 hover:bg-amber-700 text-white font-bold text-xs shadow-sm transition-all shrink-0"
+              className="px-4 py-2 rounded-full bg-amber-600 hover:bg-amber-700 text-white font-bold text-xs shadow-xs transition-all shrink-0 self-start sm:self-center"
             >
               {t('hitl.reviewDecisions')}
             </button>
@@ -135,7 +136,7 @@ function MainApp() {
         <HeroMetrics stats={stats} />
 
         {/* Section Heading */}
-        <div className="flex items-center justify-between pt-2">
+        <div className="flex items-center justify-between pt-1">
           <div>
             <h2 className="text-xl font-extrabold text-slate-900 tracking-tight">
               {t('map.title')}
@@ -162,7 +163,7 @@ function MainApp() {
       </main>
 
       {/* Footer */}
-      <footer className="border-t border-slate-200 bg-white py-6 mt-12 text-center text-xs text-slate-500">
+      <footer className="border-t border-slate-200/80 bg-white/70 py-6 text-center text-xs text-slate-500 hidden md:block">
         <div className="max-w-7xl mx-auto px-4 space-y-1">
           <p className="font-semibold text-slate-700">
             {t('footer.tagline')}
@@ -172,6 +173,16 @@ function MainApp() {
           </p>
         </div>
       </footer>
+
+      {/* Mobile Bottom Navigation Bar (Fixed for phones) */}
+      <MobileBottomNav
+        onOpenSurplus={() => setIsSurplusOpen(true)}
+        onOpenNeed={() => setIsNeedOpen(true)}
+        onOpenHITL={() => setIsHITLOpen(true)}
+        onOpenAuth={() => setIsAuthOpen(true)}
+        onOpenProfile={() => setIsProfileOpen(true)}
+        pendingCount={pendingApprovalsCount}
+      />
 
       {/* Modals & Drawers */}
       <HITLDrawer

@@ -1,0 +1,191 @@
+{
+  "navbar": {
+    "title": "EduShare",
+    "agent": "Agent",
+    "track": "Buen Vecino",
+    "tagline": "Agente Autónomo de Redistribución y Logística Escolar",
+    "liveStream": "Transmisión en Vivo (SSE)",
+    "bedrockActive": "AWS Bedrock Activo",
+    "agentDecisions": "Decisiones",
+    "reportSurplus": "Ofrecer Excedente",
+    "requestNeed": "Solicitar Material",
+    "schoolLogin": "Portal Escolar",
+    "logout": "Cerrar Sesión",
+    "students": "Estudiantes"
+  },
+  "hero": {
+    "savingsTitle": "Ahorro Público",
+    "savingsDesc": "Fondos públicos conservados mediante redistribución entre escuelas",
+    "itemsTitle": "Equipos Reubicados",
+    "itemsDesc": "Recursos almacenados devueltos a las aulas escolares",
+    "co2Title": "Emisiones CO2 Evitadas",
+    "co2Desc": "Impacto ambiental evitado al prevenir nuevas compras y envíos",
+    "schoolsTitle": "Escuelas en la Red",
+    "schoolsDesc": "Instituciones educativas y talleres solidarios activos",
+    "units": {
+      "items": "Artículos",
+      "schools": "Escuelas",
+      "kg": "kg"
+    }
+  },
+  "map": {
+    "title": "Red de Intercambio Escolar en Tiempo Real",
+    "subtitle": "Asignación autónoma de excedentes a necesidades de escuelas vecinas con rutas logísticas.",
+    "legend": {
+      "title": "Leyenda",
+      "surplusDepot": "Almacén de Excedentes",
+      "openNeed": "Escuela con Solicitud Abierta",
+      "transferRoute": "Ruta de Transferencia Activa"
+    },
+    "popup": {
+      "transferBadge": "Transferencia Verificada EduShare",
+      "students": "ESTUDIANTES",
+      "teachers": "DOCENTES",
+      "classrooms": "AULAS",
+      "savings": "Ahorro",
+      "co2": "CO2"
+    }
+  },
+  "hitl": {
+    "title": "Centro de Decisiones del Agente (HITL)",
+    "subtitle": "Human-in-the-Loop • Cola de Aprobación del Director",
+    "noTasksTitle": "Sin Aprobaciones Pendientes",
+    "noTasksDesc": "El Agente EduShare monitorea inventarios y necesidades escolares en segundo plano.",
+    "agentBadge": "Propuesta Strands Agent",
+    "distance": "Distancia",
+    "districts": "Ruta",
+    "savings": "Ahorro",
+    "preventedCo2": "CO2 Evitado",
+    "reasoningTitle": "Fundamento de la IA",
+    "rejectBtn": "Rechazar",
+    "approveBtn": "Aprobar y Despachar",
+    "footerNote": "Principio Human-in-the-Loop: Ninguna transferencia se ejecuta sin autorización de la dirección escolar.",
+    "bannerTitle": "Aprobación de Dirección Requerida:",
+    "bannerText": "El Agente EduShare formuló {{count}} nuevas coincidencias logísticas.",
+    "reviewDecisions": "Revisar Decisiones"
+  },
+  "surplus": {
+    "modalTitle": "Reportar Equipamiento Excedente",
+    "modalSubtitle": "Sube una foto; la IA de Amazon Bedrock detecta detalles, cantidad y condición.",
+    "photoLabel": "Foto del Material (Opcional / Detección Visual Bedrock)",
+    "dropzoneTitle": "Sube o arrastra una foto aquí",
+    "dropzoneDesc": "Amazon Bedrock Nova Pro identificará el artículo, la cantidad y el estado.",
+    "aiDetected": "Identificado por Bedrock",
+    "analyzing": "Amazon Bedrock analizando imagen...",
+    "changePhoto": "Clic para cambiar foto.",
+    "itemTitle": "Título del Artículo *",
+    "itemTitlePlaceholder": "ej: 15 Computadoras de Escritorio Dell y Monitores",
+    "category": "Categoría",
+    "condition": "Condición Física",
+    "quantity": "Cantidad",
+    "estimatedValue": "Valor Unitario Estimado ($)",
+    "notes": "Descripción y Notas",
+    "notesPlaceholder": "Detalles del estado, accesorios incluidos, instrucciones de entrega...",
+    "cancel": "Cancelar",
+    "submit": "Publicar Excedente e Iniciar Agente",
+    "categories": {
+      "it": "Informática y Computación",
+      "furniture": "Mobiliario y Pupitres",
+      "science": "Ciencias y Laboratorio",
+      "library": "Biblioteca y Libros",
+      "sports": "Deportes y Educación Física",
+      "music": "Música y Arte",
+      "office": "Oficina y Administración",
+      "general": "Equipamiento General"
+    },
+    "conditions": {
+      "new": "Nuevo / En Caja",
+      "veryGood": "Muy Bueno (Poco Uso)",
+      "good": "Bueno (Operativo)",
+      "needsRepair": "Requiere Mantenimiento o Reparación"
+    }
+  },
+  "need": {
+    "modalTitle": "Solicitud de Material Escolar",
+    "modalSubtitle": "Comunica las necesidades de recursos didácticos a escuelas cercanas.",
+    "needTitle": "Título de la Solicitud *",
+    "needTitlePlaceholder": "ej: 10 Computadoras para Taller de Programación",
+    "category": "Categoría",
+    "urgency": "Nivel de Urgencia",
+    "quantityNeeded": "Cantidad Requerida",
+    "description": "Justificación y Uso Previsto",
+    "descriptionPlaceholder": "Para qué aula o taller se utilizará...",
+    "cancel": "Cancelar",
+    "submit": "Enviar Solicitud",
+    "urgencies": {
+      "critical": "Crítico / Urgencia",
+      "high": "Alta Prioridad",
+      "medium": "Prioridad Estándar",
+      "low": "Baja Prioridad"
+    }
+  },
+  "auth": {
+    "modalTitle": "Portal de Administración Escolar",
+    "modalSubtitle": "Únete a la red solidaria de redistribución con EduShare Agent.",
+    "tabLogin": "Iniciar Sesión",
+    "tabRegister": "Registrar Nueva Escuela",
+    "quickLoginHint": "Acceso Rápido para Demostración:",
+    "email": "Correo Institucional",
+    "password": "Contraseña",
+    "loginBtn": "Entrar",
+    "schoolName": "Nombre Oficial de la Escuela *",
+    "schoolNamePlaceholder": "ej: Instituto Tecnológico Internacional",
+    "district": "Ciudad / Distrito",
+    "schoolType": "Tipo de Institución",
+    "capacityMetrics": "Métricas de Capacidad",
+    "studentCount": "Estudiantes",
+    "teacherCount": "Docentes",
+    "classroomCount": "Aulas",
+    "latitude": "Latitud",
+    "longitude": "Longitud",
+    "principalName": "Director / Responsable",
+    "phone": "Teléfono de Contacto",
+    "registerBtn": "Registrar Escuela e Iniciar Sesión",
+    "schoolTypes": {
+      "anadolu": "Escuela Secundaria",
+      "fen": "Instituto Científico y Tecnológico",
+      "mesleki": "Escuela Técnica y Vocacional",
+      "imamHatip": "Escuela Especializada",
+      "ortaokul": "Educación Media",
+      "ilkokul": "Educación Primaria"
+    }
+  },
+  "profile": {
+    "modalTitle": "Perfil Institucional Escolar",
+    "modalSubtitle": "Actualiza capacidad de estudiantes, coordenadas y contactos.",
+    "schoolName": "Nombre de la Escuela",
+    "district": "Distrito / Ciudad",
+    "schoolType": "Tipo de Institución",
+    "capacityMetrics": "Métricas Institucionales",
+    "studentCount": "Estudiantes",
+    "teacherCount": "Docentes",
+    "classroomCount": "Aulas",
+    "latitude": "Latitud",
+    "longitude": "Longitud",
+    "principalName": "Director",
+    "phone": "Teléfono",
+    "close": "Cerrar",
+    "save": "Guardar Cambios",
+    "success": "¡Perfil actualizado con éxito!"
+  },
+  "feed": {
+    "transfersTab": "Transferencias Realizadas ({{count}})",
+    "surplusTab": "Excedentes Disponibles ({{count}})",
+    "needsTab": "Solicitudes Abiertas ({{count}})",
+    "emptyTransfers": "Aún no hay transferencias registradas.",
+    "emptySurplus": "No hay excedentes activos en este momento.",
+    "emptyNeeds": "No hay solicitudes de material abiertas actualmente.",
+    "successfulTransfer": "Transferencia Exitosa",
+    "today": "Hoy",
+    "savingsLabel": "Ahorro",
+    "co2Label": "CO2",
+    "schoolLabel": "Escuela:",
+    "conditionLabel": "Estado:",
+    "requestedBy": "Solicitado por:",
+    "neededLabel": "Requerido:"
+  },
+  "footer": {
+    "tagline": "EduShare Agent • Agents for Humans Hackathon (Devpost & AWS)",
+    "credits": "Track: Good Neighbor Agents • Powered by Strands Agents SDK & Amazon Bedrock (Nova Pro) • Real PostgreSQL Persistence"
+  }
+}
