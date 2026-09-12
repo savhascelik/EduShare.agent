@@ -1,4 +1,5 @@
 import React, { useState, useEffect, useCallback } from 'react';
+import { useTranslation } from 'react-i18next';
 import { AuthProvider, useAuth } from './context/AuthContext';
 import { StreamProvider, useStream } from './context/StreamContext';
 import api from './services/api';
@@ -14,6 +15,7 @@ import { ProfileModal } from './components/ProfileModal';
 import { RecentActivityFeed } from './components/RecentActivityFeed';
 
 function MainApp() {
+  const { t } = useTranslation();
   const { currentSchool, isAuthenticated } = useAuth();
   const { subscribe } = useStream();
 
@@ -74,8 +76,7 @@ function MainApp() {
     const unsubscribe = subscribe((event) => {
       console.log('[Real-time Event Received]:', event);
       if (event.type === 'NEW_HITL_TASK') {
-        // Refresh tasks and open drawer if it's the principal's task
-        api.getTasks().then((t) => setTasks(t));
+        api.getTasks().then((tList) => setTasks(tList));
         setIsHITLOpen(true);
       } else if (event.type === 'TRANSFER_APPROVED' || event.type === 'TRANSFER_REJECTED') {
         loadDashboardData();
@@ -85,7 +86,7 @@ function MainApp() {
   }, [subscribe, loadDashboardData]);
 
   const pendingApprovalsCount = tasks.filter(
-    (t) => t.status === 'AWAITING_HUMAN_APPROVAL'
+    (tItem) => tItem.status === 'AWAITING_HUMAN_APPROVAL'
   ).length;
 
   return (
@@ -114,10 +115,10 @@ function MainApp() {
               </span>
               <div>
                 <span className="text-xs font-bold text-amber-950 uppercase tracking-wide">
-                  Müdür Onayı Bekleniyor:
+                  {t('hitl.bannerTitle')}
                 </span>
                 <p className="text-sm font-semibold text-amber-900">
-                  EduShare Ajanı {pendingApprovalsCount} adet yeni lojistik eşleşme hazırladı. Kararı onaylamak için inceleyin.
+                  {t('hitl.bannerText', { count: pendingApprovalsCount })}
                 </p>
               </div>
             </div>
@@ -125,7 +126,7 @@ function MainApp() {
               onClick={() => setIsHITLOpen(true)}
               className="px-4 py-2 rounded-xl bg-amber-600 hover:bg-amber-700 text-white font-bold text-xs shadow-sm transition-all shrink-0"
             >
-              Kararları İncele
+              {t('hitl.reviewDecisions')}
             </button>
           </div>
         )}
@@ -137,10 +138,10 @@ function MainApp() {
         <div className="flex items-center justify-between pt-2">
           <div>
             <h2 className="text-xl font-extrabold text-slate-900 tracking-tight">
-              İstanbul Okullar Arası Canlı Transfer Ağı
+              {t('map.title')}
             </h2>
             <p className="text-xs text-slate-500 font-medium">
-              Fazla envanterlerin en yakın ihtiyaç sahiplerine otonom aktarımı ve anlık lojistik hatları.
+              {t('map.subtitle')}
             </p>
           </div>
         </div>
@@ -164,10 +165,10 @@ function MainApp() {
       <footer className="border-t border-slate-200 bg-white py-6 mt-12 text-center text-xs text-slate-500">
         <div className="max-w-7xl mx-auto px-4 space-y-1">
           <p className="font-semibold text-slate-700">
-            EduShare Agent • Agents for Humans Hackathon (Devpost & AWS)
+            {t('footer.tagline')}
           </p>
           <p className="text-[11px] text-slate-400">
-            Track: Good Neighbor Agents • Powered by <strong>Strands Agents SDK</strong> & <strong>Amazon Bedrock (Nova Pro)</strong> • Real PostgreSQL Persistence
+            {t('footer.credits')}
           </p>
         </div>
       </footer>

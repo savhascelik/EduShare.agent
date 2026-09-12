@@ -1,7 +1,8 @@
-import React, { useMemo } from 'react';
+import React from 'react';
 import { MapContainer, TileLayer, Marker, Popup, Polyline } from 'react-leaflet';
 import L from 'leaflet';
-import { School, ArrowRight, Sparkles, Package, Users, GraduationCap, MapPin } from 'lucide-react';
+import { Sparkles, ArrowRight, MapPin } from 'lucide-react';
+import { useTranslation } from 'react-i18next';
 
 // Custom Scalable SVG Marker Icons using L.divIcon
 const createCustomIcon = (bgColor, borderColor, text) => {
@@ -34,19 +35,15 @@ const createCustomIcon = (bgColor, borderColor, text) => {
 };
 
 const schoolIcon = createCustomIcon('#3B82F6', '#1D4ED8', '🏫');
-const surplusIcon = createCustomIcon('#F59E0B', '#D97706', '📦');
-const needIcon = createCustomIcon('#10B981', '#059669', '🎯');
 
 // Calculates curved intermediate points between two lat/lng coordinates (Quadratic Bézier)
 function getCurvedPath(lat1, lng1, lat2, lng2, curvature = 0.15) {
   const points = [];
   const steps = 30;
 
-  // Midpoint
   const midLat = (lat1 + lat2) / 2;
   const midLng = (lng1 + lng2) / 2;
 
-  // Offset perpendicular to the chord
   const dLat = lat2 - lat1;
   const dLng = lng2 - lng1;
   const norm = Math.sqrt(dLat * dLat + dLng * dLng) || 1;
@@ -65,10 +62,13 @@ function getCurvedPath(lat1, lng1, lat2, lng2, curvature = 0.15) {
 
 export const TransferMap = ({
   schools = [],
-  transfers = [],
-  onSelectSchool
+  transfers = []
 }) => {
-  // Center of Istanbul
+  const { t, i18n } = useTranslation();
+  const locale = i18n.language?.startsWith('en') ? 'en-US' : 'tr-TR';
+  const currencySymbol = i18n.language?.startsWith('en') ? '$' : '₺';
+
+  // Default center
   const defaultCenter = [41.015, 29.035];
 
   return (
@@ -77,19 +77,19 @@ export const TransferMap = ({
       {/* Map Legend Overlay */}
       <div className="absolute top-4 right-4 z-20 bg-white/95 backdrop-blur-md px-3.5 py-2.5 rounded-2xl border border-slate-200/80 shadow-md text-xs space-y-1.5 pointer-events-auto">
         <div className="font-bold text-slate-800 text-[11px] uppercase tracking-wider mb-1">
-          Harita Katmanı
+          {t('map.legend.title')}
         </div>
         <div className="flex items-center space-x-2">
           <span className="w-3 h-3 rounded-full bg-amber-500 border border-amber-600" />
-          <span className="text-slate-600 font-medium">Fazla Eşya Deposu</span>
+          <span className="text-slate-600 font-medium">{t('map.legend.surplusDepot')}</span>
         </div>
         <div className="flex items-center space-x-2">
           <span className="w-3 h-3 rounded-full bg-emerald-500 border border-emerald-600" />
-          <span className="text-slate-600 font-medium">Açık İhtiyaç Bildiren Okul</span>
+          <span className="text-slate-600 font-medium">{t('map.legend.openNeed')}</span>
         </div>
         <div className="flex items-center space-x-2">
           <span className="w-4 h-0.5 bg-amber-500" />
-          <span className="text-slate-600 font-medium">Aktif Transfer Hattı</span>
+          <span className="text-slate-600 font-medium">{t('map.legend.transferRoute')}</span>
         </div>
       </div>
 
@@ -105,12 +105,12 @@ export const TransferMap = ({
         />
 
         {/* Transfer Arcs */}
-        {transfers.map((t, idx) => {
-          if (!t.from_lat || !t.to_lat) return null;
-          const curve = getCurvedPath(t.from_lat, t.from_lng, t.to_lat, t.to_lng);
+        {transfers.map((tItem, idx) => {
+          if (!tItem.from_lat || !tItem.to_lat) return null;
+          const curve = getCurvedPath(tItem.from_lat, tItem.from_lng, tItem.to_lat, tItem.to_lng);
           return (
             <Polyline
-              key={t.id || idx}
+              key={tItem.id || idx}
               positions={curve}
               pathOptions={{
                 color: '#F59E0B',
@@ -124,19 +124,19 @@ export const TransferMap = ({
                 <div className="p-2 space-y-2 text-xs max-w-xs">
                   <div className="flex items-center space-x-1.5 text-amber-700 font-bold">
                     <Sparkles className="w-4 h-4 text-amber-500" />
-                    <span>Onaylanmış EduShare Transferi</span>
+                    <span>{t('map.popup.transferBadge')}</span>
                   </div>
                   <div className="font-semibold text-slate-900 text-sm">
-                    {t.item_summary} ({t.quantity} Adet)
+                    {tItem.item_summary} ({tItem.quantity})
                   </div>
                   <div className="flex items-center justify-between text-slate-600 pt-1 border-t border-slate-100">
-                    <span className="truncate max-w-[100px] font-medium">{t.from_school_name}</span>
+                    <span className="truncate max-w-[100px] font-medium">{tItem.from_school_name}</span>
                     <ArrowRight className="w-3.5 h-3.5 text-slate-400 shrink-0 mx-1" />
-                    <span className="truncate max-w-[100px] font-medium text-emerald-700">{t.to_school_name}</span>
+                    <span className="truncate max-w-[100px] font-medium text-emerald-700">{tItem.to_school_name}</span>
                   </div>
                   <div className="grid grid-cols-2 gap-1 text-[11px] bg-amber-50 p-2 rounded-lg font-medium text-amber-900">
-                    <div>💰 Tasarruf: ₺{Number(t.estimated_savings_tl).toLocaleString('tr-TR')}</div>
-                    <div>🌿 CO2: {Number(t.prevented_co2_kg).toFixed(1)} kg</div>
+                    <div>💰 {t('map.popup.savings')}: {currencySymbol}{Number(tItem.estimated_savings_tl).toLocaleString(locale)}</div>
+                    <div>🌿 {t('map.popup.co2')}: {Number(tItem.prevented_co2_kg).toFixed(1)} kg</div>
                   </div>
                 </div>
               </Popup>
@@ -169,15 +169,15 @@ export const TransferMap = ({
                   {/* School Profile Stats */}
                   <div className="grid grid-cols-3 gap-1.5 bg-slate-50 p-2 rounded-xl text-center text-xs">
                     <div>
-                      <div className="text-slate-400 text-[10px] font-semibold">ÖĞRENCİ</div>
+                      <div className="text-slate-400 text-[10px] font-semibold">{t('map.popup.students')}</div>
                       <div className="font-bold text-slate-800">{school.student_count || '-'}</div>
                     </div>
                     <div>
-                      <div className="text-slate-400 text-[10px] font-semibold">ÖĞRETMEN</div>
+                      <div className="text-slate-400 text-[10px] font-semibold">{t('map.popup.teachers')}</div>
                       <div className="font-bold text-slate-800">{school.teacher_count || '-'}</div>
                     </div>
                     <div>
-                      <div className="text-slate-400 text-[10px] font-semibold">DERSLİK</div>
+                      <div className="text-slate-400 text-[10px] font-semibold">{t('map.popup.classrooms')}</div>
                       <div className="font-bold text-slate-800">{school.classroom_count || '-'}</div>
                     </div>
                   </div>

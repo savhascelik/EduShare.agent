@@ -1,0 +1,191 @@
+{
+  "navbar": {
+    "title": "EduShare",
+    "agent": "Agent",
+    "track": "Good Neighbor",
+    "tagline": "Autonomous Inter-School Surplus Redistribution & Logistics Agent",
+    "liveStream": "Live Stream (SSE)",
+    "bedrockActive": "AWS Bedrock Active",
+    "agentDecisions": "Agent Decisions",
+    "reportSurplus": "Offer Surplus",
+    "requestNeed": "Request Item",
+    "schoolLogin": "School Portal",
+    "logout": "Log Out",
+    "students": "Students"
+  },
+  "hero": {
+    "savingsTitle": "Public Savings",
+    "savingsDesc": "Public funds conserved through peer redistribution",
+    "itemsTitle": "Rehomed Equipment",
+    "itemsDesc": "Dormant warehouse assets restored to classrooms",
+    "co2Title": "CO2 Emissions Prevented",
+    "co2Desc": "Environmental impact averted by preventing new manufacturing",
+    "schoolsTitle": "Schools in Network",
+    "schoolsDesc": "Participating educational institutions & workshops",
+    "units": {
+      "items": "Items",
+      "schools": "Schools",
+      "kg": "kg"
+    }
+  },
+  "map": {
+    "title": "Live Inter-School Equipment Exchange Network",
+    "subtitle": "Autonomous matching of surplus inventories to nearby school requests with real-time transfer corridors.",
+    "legend": {
+      "title": "Map Legend",
+      "surplusDepot": "Surplus Equipment Depot",
+      "openNeed": "School with Open Request",
+      "transferRoute": "Active Transfer Corridor"
+    },
+    "popup": {
+      "transferBadge": "Verified EduShare Transfer",
+      "students": "STUDENTS",
+      "teachers": "TEACHERS",
+      "classrooms": "CLASSROOMS",
+      "savings": "Savings",
+      "co2": "CO2"
+    }
+  },
+  "hitl": {
+    "title": "Agent Decision Center (HITL)",
+    "subtitle": "Human-in-the-Loop • Principal Approval Queue",
+    "noTasksTitle": "No Pending Approvals",
+    "noTasksDesc": "The EduShare Agent is actively scanning school inventories and needs in the background.",
+    "agentBadge": "Strands Agent Proposal",
+    "distance": "Distance",
+    "districts": "Route",
+    "savings": "Savings",
+    "preventedCo2": "Prevented CO2",
+    "reasoningTitle": "AI Decision Rationale",
+    "rejectBtn": "Reject",
+    "approveBtn": "Approve & Dispatch",
+    "footerNote": "Human-in-the-Loop Principle: No equipment transfer is executed without explicit principal approval.",
+    "bannerTitle": "Principal Approval Required:",
+    "bannerText": "EduShare Agent formulated {{count}} new logistical matches. Review now to approve transfers.",
+    "reviewDecisions": "Review Decisions"
+  },
+  "surplus": {
+    "modalTitle": "Report Surplus Equipment",
+    "modalSubtitle": "Upload a photo; Amazon Bedrock AI automatically extracts item details, quantity, and condition.",
+    "photoLabel": "Equipment Photo (Optional / Bedrock Vision Detection)",
+    "dropzoneTitle": "Upload or Drag & Drop Photo",
+    "dropzoneDesc": "Amazon Bedrock Nova Pro will identify the item, quantity, condition, and market value.",
+    "aiDetected": "Identified by Bedrock",
+    "analyzing": "Amazon Bedrock is Analyzing Image...",
+    "changePhoto": "Click to change photo.",
+    "itemTitle": "Equipment Title *",
+    "itemTitlePlaceholder": "e.g., 15x Dell Optiplex Desktops & Displays",
+    "category": "Category",
+    "condition": "Physical Condition",
+    "quantity": "Quantity / Units",
+    "estimatedValue": "Est. Unit Value ($/₺)",
+    "notes": "Description & Additional Details",
+    "notesPlaceholder": "Item condition, accessories included, pickup instructions...",
+    "cancel": "Cancel",
+    "submit": "Publish Surplus & Launch Agent",
+    "categories": {
+      "it": "IT & Computers",
+      "furniture": "Furniture & Desks",
+      "science": "Science & Laboratory",
+      "library": "Library & Books",
+      "sports": "Sports & Athletics",
+      "music": "Music & Arts",
+      "office": "Office & Administrative",
+      "general": "General Equipment"
+    },
+    "conditions": {
+      "new": "New / Packaged",
+      "veryGood": "Very Good (Lightly Used)",
+      "good": "Good (Fully Functional)",
+      "needsRepair": "Needs Maintenance / Minor Repair"
+    }
+  },
+  "need": {
+    "modalTitle": "School Equipment Request",
+    "modalSubtitle": "Broadcast learning equipment or infrastructure needs to neighbor schools.",
+    "needTitle": "Request Title *",
+    "needTitlePlaceholder": "e.g., 10 Computers for Coding Workshop",
+    "category": "Category",
+    "urgency": "Urgency Level",
+    "quantityNeeded": "Required Quantity (Units)",
+    "description": "Justification & Use Case",
+    "descriptionPlaceholder": "Why this equipment is needed, classroom or lab where it will be utilized...",
+    "cancel": "Cancel",
+    "submit": "Submit Equipment Request",
+    "urgencies": {
+      "critical": "Critical / Emergency",
+      "high": "High Priority",
+      "medium": "Standard Priority",
+      "low": "Low Priority"
+    }
+  },
+  "auth": {
+    "modalTitle": "School Administration Portal",
+    "modalSubtitle": "Join the collaborative resource redistribution network with EduShare Agent.",
+    "tabLogin": "School Login",
+    "tabRegister": "Register New School",
+    "quickLoginHint": "Quick Demo Test Login:",
+    "email": "School Email Address",
+    "password": "Password",
+    "loginBtn": "Log In",
+    "schoolName": "Official School Name *",
+    "schoolNamePlaceholder": "e.g., International STEM Academy",
+    "district": "City / District",
+    "schoolType": "Institution Type",
+    "capacityMetrics": "Capacity Metrics (Quick Setup)",
+    "studentCount": "Students",
+    "teacherCount": "Teachers",
+    "classroomCount": "Classrooms",
+    "latitude": "Latitude",
+    "longitude": "Longitude",
+    "principalName": "Principal / Lead Admin",
+    "phone": "Contact Phone",
+    "registerBtn": "Register School & Sign In",
+    "schoolTypes": {
+      "anadolu": "Secondary / High School",
+      "fen": "Science & Tech Academy",
+      "mesleki": "Vocational & Technical School",
+      "imamHatip": "Specialized High School",
+      "ortaokul": "Middle School",
+      "ilkokul": "Primary School"
+    }
+  },
+  "profile": {
+    "modalTitle": "Institutional School Profile",
+    "modalSubtitle": "Update student capacity, geographical coordinates, and administrative contacts.",
+    "schoolName": "School Name",
+    "district": "District / City",
+    "schoolType": "Institution Type",
+    "capacityMetrics": "Institutional Capacity Metrics",
+    "studentCount": "Students",
+    "teacherCount": "Teachers",
+    "classroomCount": "Classrooms",
+    "latitude": "Latitude",
+    "longitude": "Longitude",
+    "principalName": "Principal Name",
+    "phone": "Phone Number",
+    "close": "Close",
+    "save": "Save Changes",
+    "success": "Profile details updated successfully!"
+  },
+  "feed": {
+    "transfersTab": "Completed Transfers ({{count}})",
+    "surplusTab": "Available Surplus ({{count}})",
+    "needsTab": "Open Requests ({{count}})",
+    "emptyTransfers": "No completed transfers recorded yet.",
+    "emptySurplus": "No active surplus inventory currently listed.",
+    "emptyNeeds": "No open equipment requests currently registered.",
+    "successfulTransfer": "Successful Transfer",
+    "today": "Today",
+    "savingsLabel": "Saved",
+    "co2Label": "CO2",
+    "schoolLabel": "School:",
+    "conditionLabel": "Condition:",
+    "requestedBy": "Requested By:",
+    "neededLabel": "Required:"
+  },
+  "footer": {
+    "tagline": "EduShare Agent • Agents for Humans Hackathon (Devpost & AWS)",
+    "credits": "Track: Good Neighbor Agents • Powered by Strands Agents SDK & Amazon Bedrock (Nova Pro) • Real PostgreSQL Persistence"
+  }
+}

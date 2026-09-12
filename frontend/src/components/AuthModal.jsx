@@ -1,9 +1,11 @@
 import React, { useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { X, Building2, Lock, Mail, MapPin, Users, GraduationCap, Phone, User, Loader2, Sparkles, AlertCircle } from 'lucide-react';
+import { X, Building2, Lock, Mail, Loader2, Sparkles, AlertCircle } from 'lucide-react';
+import { useTranslation } from 'react-i18next';
 import { useAuth } from '../context/AuthContext';
 
 export const AuthModal = ({ isOpen, onClose }) => {
+  const { t } = useTranslation();
   const { login, register } = useAuth();
   const [activeTab, setActiveTab] = useState('login'); // 'login' | 'register'
   const [submitting, setSubmitting] = useState(false);
@@ -30,7 +32,17 @@ export const AuthModal = ({ isOpen, onClose }) => {
 
   const districts = [
     'Kadıköy', 'Beşiktaş', 'Üsküdar', 'Maltepe', 'Şişli', 'Fatih',
-    'Ataşehir', 'Kartal', 'Pendik', 'Bakırköy', 'Beyoğlu', 'Sarıyer'
+    'Ataşehir', 'Kartal', 'Pendik', 'Bakırköy', 'Beyoğlu', 'Sarıyer',
+    'Berlin', 'Paris', 'London', 'Tokyo', 'New York'
+  ];
+
+  const schoolTypeOptions = [
+    { value: 'Anadolu Lisesi', label: t('auth.schoolTypes.anadolu') },
+    { value: 'Fen Lisesi', label: t('auth.schoolTypes.fen') },
+    { value: 'Mesleki ve Teknik Lise', label: t('auth.schoolTypes.mesleki') },
+    { value: 'İmam Hatip Lisesi', label: t('auth.schoolTypes.imamHatip') },
+    { value: 'Ortaokul', label: t('auth.schoolTypes.ortaokul') },
+    { value: 'İlkokul', label: t('auth.schoolTypes.ilkokul') }
   ];
 
   const handleLogin = async (e) => {
@@ -41,7 +53,7 @@ export const AuthModal = ({ isOpen, onClose }) => {
       await login({ email: loginEmail, password: loginPassword });
       onClose();
     } catch (err) {
-      setError(err?.response?.data?.detail || 'Giriş yapılamadı. E-posta veya şifre hatalı.');
+      setError(err?.response?.data?.detail || 'Login failed. Invalid email or password.');
     } finally {
       setSubmitting(false);
     }
@@ -56,7 +68,7 @@ export const AuthModal = ({ isOpen, onClose }) => {
       await login({ email, password });
       onClose();
     } catch (err) {
-      setError(err?.response?.data?.detail || 'Hızlı giriş hatası.');
+      setError(err?.response?.data?.detail || 'Quick demo login failed.');
     } finally {
       setSubmitting(false);
     }
@@ -84,7 +96,7 @@ export const AuthModal = ({ isOpen, onClose }) => {
       });
       onClose();
     } catch (err) {
-      setError(err?.response?.data?.detail || 'Kayıt sırasında bir hata oluştu.');
+      setError(err?.response?.data?.detail || 'Registration failed.');
     } finally {
       setSubmitting(false);
     }
@@ -117,10 +129,10 @@ export const AuthModal = ({ isOpen, onClose }) => {
                   </div>
                   <div>
                     <h3 className="font-extrabold text-lg text-slate-900">
-                      Okul Yönetim Portalı
+                      {t('auth.modalTitle')}
                     </h3>
                     <p className="text-xs text-slate-500 font-medium">
-                      EduShare Ajanı ile kaynak paylaşımına katılın.
+                      {t('auth.modalSubtitle')}
                     </p>
                   </div>
                 </div>
@@ -142,7 +154,7 @@ export const AuthModal = ({ isOpen, onClose }) => {
                       : 'border-transparent text-slate-500 hover:text-slate-800'
                   }`}
                 >
-                  Okul Girişi
+                  {t('auth.tabLogin')}
                 </button>
                 <button
                   onClick={() => { setActiveTab('register'); setError(null); }}
@@ -152,7 +164,7 @@ export const AuthModal = ({ isOpen, onClose }) => {
                       : 'border-transparent text-slate-500 hover:text-slate-800'
                   }`}
                 >
-                  Yeni Okul Kaydı
+                  {t('auth.tabRegister')}
                 </button>
               </div>
             </div>
@@ -174,7 +186,7 @@ export const AuthModal = ({ isOpen, onClose }) => {
                   <div className="bg-amber-50/70 p-3.5 rounded-2xl border border-amber-200/80 space-y-2 mb-4">
                     <div className="text-[11px] font-bold text-amber-900 flex items-center space-x-1">
                       <Sparkles className="w-3.5 h-3.5 text-amber-600" />
-                      <span>Hızlı Test İçin Örnek Okul Seçebilirsiniz:</span>
+                      <span>{t('auth.quickLoginHint')}</span>
                     </div>
                     <div className="grid grid-cols-2 gap-2">
                       <button
@@ -196,7 +208,7 @@ export const AuthModal = ({ isOpen, onClose }) => {
 
                   <div>
                     <label className="block text-xs font-bold text-slate-700 uppercase mb-1">
-                      Okul E-posta Adresi
+                      {t('auth.email')}
                     </label>
                     <div className="relative">
                       <Mail className="w-4 h-4 text-slate-400 absolute left-3.5 top-3" />
@@ -205,7 +217,7 @@ export const AuthModal = ({ isOpen, onClose }) => {
                         required
                         value={loginEmail}
                         onChange={(e) => setLoginEmail(e.target.value)}
-                        placeholder="ornek@meb.gov.tr"
+                        placeholder="school@domain.edu"
                         className="w-full pl-10 pr-4 py-2.5 rounded-xl border border-slate-300 text-sm font-medium focus:ring-2 focus:ring-amber-500"
                       />
                     </div>
@@ -213,7 +225,7 @@ export const AuthModal = ({ isOpen, onClose }) => {
 
                   <div>
                     <label className="block text-xs font-bold text-slate-700 uppercase mb-1">
-                      Şifre
+                      {t('auth.password')}
                     </label>
                     <div className="relative">
                       <Lock className="w-4 h-4 text-slate-400 absolute left-3.5 top-3" />
@@ -234,7 +246,7 @@ export const AuthModal = ({ isOpen, onClose }) => {
                     className="w-full mt-4 flex items-center justify-center space-x-2 py-3 rounded-xl bg-slate-900 hover:bg-slate-800 text-white font-bold text-sm shadow-md transition-all disabled:opacity-50"
                   >
                     {submitting && <Loader2 className="w-4 h-4 animate-spin" />}
-                    <span>Giriş Yap</span>
+                    <span>{t('auth.loginBtn')}</span>
                   </button>
                 </form>
               ) : (
@@ -243,14 +255,14 @@ export const AuthModal = ({ isOpen, onClose }) => {
                   {/* School Name & Email */}
                   <div>
                     <label className="block text-xs font-bold text-slate-700 uppercase mb-1">
-                      Okul Resmi Adı *
+                      {t('auth.schoolName')}
                     </label>
                     <input
                       type="text"
                       required
                       value={regName}
                       onChange={(e) => setRegName(e.target.value)}
-                      placeholder="Örn: Üsküdar Fen Lisesi"
+                      placeholder={t('auth.schoolNamePlaceholder')}
                       className="w-full px-4 py-2 rounded-xl border border-slate-300 text-sm font-medium focus:ring-2 focus:ring-amber-500"
                     />
                   </div>
@@ -258,20 +270,20 @@ export const AuthModal = ({ isOpen, onClose }) => {
                   <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                     <div>
                       <label className="block text-xs font-bold text-slate-700 uppercase mb-1">
-                        E-posta *
+                        {t('auth.email')} *
                       </label>
                       <input
                         type="email"
                         required
                         value={regEmail}
                         onChange={(e) => setRegEmail(e.target.value)}
-                        placeholder="okul@meb.gov.tr"
+                        placeholder="school@domain.edu"
                         className="w-full px-4 py-2 rounded-xl border border-slate-300 text-sm font-medium focus:ring-2 focus:ring-amber-500"
                       />
                     </div>
                     <div>
                       <label className="block text-xs font-bold text-slate-700 uppercase mb-1">
-                        Şifre *
+                        {t('auth.password')} *
                       </label>
                       <input
                         type="password"
@@ -288,7 +300,7 @@ export const AuthModal = ({ isOpen, onClose }) => {
                   <div className="grid grid-cols-2 gap-3">
                     <div>
                       <label className="block text-xs font-bold text-slate-700 uppercase mb-1">
-                        İlçe
+                        {t('auth.district')}
                       </label>
                       <select
                         value={regDistrict}
@@ -302,19 +314,16 @@ export const AuthModal = ({ isOpen, onClose }) => {
                     </div>
                     <div>
                       <label className="block text-xs font-bold text-slate-700 uppercase mb-1">
-                        Okul Türü
+                        {t('auth.schoolType')}
                       </label>
                       <select
                         value={regSchoolType}
                         onChange={(e) => setRegSchoolType(e.target.value)}
                         className="w-full px-3 py-2 rounded-xl border border-slate-300 bg-white text-sm font-medium focus:ring-2 focus:ring-amber-500"
                       >
-                        <option value="Anadolu Lisesi">Anadolu Lisesi</option>
-                        <option value="Fen Lisesi">Fen Lisesi</option>
-                        <option value="Mesleki ve Teknik Lise">Mesleki ve Teknik Lise</option>
-                        <option value="İmam Hatip Lisesi">İmam Hatip Lisesi</option>
-                        <option value="Ortaokul">Ortaokul</option>
-                        <option value="İlkokul">İlkokul</option>
+                        {schoolTypeOptions.map((st) => (
+                          <option key={st.value} value={st.value}>{st.label}</option>
+                        ))}
                       </select>
                     </div>
                   </div>
@@ -322,12 +331,12 @@ export const AuthModal = ({ isOpen, onClose }) => {
                   {/* Profile Metrics (Students, Teachers, Classrooms) */}
                   <div className="bg-slate-50 p-3.5 rounded-2xl border border-slate-200 space-y-2">
                     <div className="text-[11px] font-bold text-slate-700 uppercase">
-                      Kurum Kapasite Bilgileri (Basit Sorular)
+                      {t('auth.capacityMetrics')}
                     </div>
                     <div className="grid grid-cols-3 gap-2">
                       <div>
                         <label className="block text-[10px] font-bold text-slate-500 uppercase">
-                          Öğrenci Sayısı
+                          {t('auth.studentCount')}
                         </label>
                         <input
                           type="number"
@@ -338,7 +347,7 @@ export const AuthModal = ({ isOpen, onClose }) => {
                       </div>
                       <div>
                         <label className="block text-[10px] font-bold text-slate-500 uppercase">
-                          Öğretmen Sayısı
+                          {t('auth.teacherCount')}
                         </label>
                         <input
                           type="number"
@@ -349,7 +358,7 @@ export const AuthModal = ({ isOpen, onClose }) => {
                       </div>
                       <div>
                         <label className="block text-[10px] font-bold text-slate-500 uppercase">
-                          Derslik Sayısı
+                          {t('auth.classroomCount')}
                         </label>
                         <input
                           type="number"
@@ -365,7 +374,7 @@ export const AuthModal = ({ isOpen, onClose }) => {
                   <div className="grid grid-cols-2 gap-3">
                     <div>
                       <label className="block text-xs font-bold text-slate-700 uppercase mb-1">
-                        Enlem (Latitude)
+                        {t('auth.latitude')}
                       </label>
                       <input
                         type="number"
@@ -377,7 +386,7 @@ export const AuthModal = ({ isOpen, onClose }) => {
                     </div>
                     <div>
                       <label className="block text-xs font-bold text-slate-700 uppercase mb-1">
-                        Boylam (Longitude)
+                        {t('auth.longitude')}
                       </label>
                       <input
                         type="number"
@@ -393,25 +402,25 @@ export const AuthModal = ({ isOpen, onClose }) => {
                   <div className="grid grid-cols-2 gap-3">
                     <div>
                       <label className="block text-xs font-bold text-slate-700 uppercase mb-1">
-                        Müdür Adı
+                        {t('auth.principalName')}
                       </label>
                       <input
                         type="text"
                         value={regPrincipalName}
                         onChange={(e) => setRegPrincipalName(e.target.value)}
-                        placeholder="Örn: Kemal Demir"
+                        placeholder="Dr. Jane Doe"
                         className="w-full px-3 py-2 rounded-xl border border-slate-300 text-xs"
                       />
                     </div>
                     <div>
                       <label className="block text-xs font-bold text-slate-700 uppercase mb-1">
-                        İletişim Telefonu
+                        {t('auth.phone')}
                       </label>
                       <input
                         type="text"
                         value={regPhone}
                         onChange={(e) => setRegPhone(e.target.value)}
-                        placeholder="0216 XXX XX XX"
+                        placeholder="+1 (555) 012-3456"
                         className="w-full px-3 py-2 rounded-xl border border-slate-300 text-xs"
                       />
                     </div>
@@ -423,7 +432,7 @@ export const AuthModal = ({ isOpen, onClose }) => {
                     className="w-full mt-2 flex items-center justify-center space-x-2 py-3 rounded-xl bg-amber-600 hover:bg-amber-700 text-white font-bold text-sm shadow-md transition-all disabled:opacity-50"
                   >
                     {submitting && <Loader2 className="w-4 h-4 animate-spin" />}
-                    <span>Okulu Kaydet ve Giriş Yap</span>
+                    <span>{t('auth.registerBtn')}</span>
                   </button>
 
                 </form>

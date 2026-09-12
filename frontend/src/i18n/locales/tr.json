@@ -1,0 +1,191 @@
+{
+  "navbar": {
+    "title": "EduShare",
+    "agent": "Agent",
+    "track": "Good Neighbor",
+    "tagline": "Okullar Arası Otonom Kaynak Paylaşımı & Lojistik Ajanı",
+    "liveStream": "Canlı Akış (SSE)",
+    "bedrockActive": "AWS Bedrock Active",
+    "agentDecisions": "Ajan Kararları",
+    "reportSurplus": "Fazla Eşya Bildir",
+    "requestNeed": "İhtiyaç Bildir",
+    "schoolLogin": "Okul Girişi",
+    "logout": "Çıkış Yap",
+    "students": "Öğr."
+  },
+  "hero": {
+    "savingsTitle": "Kamu Tasarrufu",
+    "savingsDesc": "Yeniden paylaşımla bütçede kalan kamu kaynağı",
+    "itemsTitle": "Paylaşılan Ekipman",
+    "itemsDesc": "Atıl depolardan sınıflara kazandırılan eşya",
+    "co2Title": "Önlenen Karbon Ayak İzi",
+    "co2Desc": "Yeni üretim ve ambalaj önlenerek korunan doğa",
+    "schoolsTitle": "Ağdaki Eğitim Kurumu",
+    "schoolsDesc": "Dayanışma ağındaki aktif okul ve atölye",
+    "units": {
+      "items": "Adet",
+      "schools": "Okul",
+      "kg": "kg"
+    }
+  },
+  "map": {
+    "title": "İstanbul Okullar Arası Canlı Transfer Ağı",
+    "subtitle": "Fazla envanterlerin en yakın ihtiyaç sahiplerine otonom aktarımı ve anlık lojistik hatları.",
+    "legend": {
+      "title": "Harita Katmanı",
+      "surplusDepot": "Fazla Eşya Deposu",
+      "openNeed": "Açık İhtiyaç Bildiren Okul",
+      "transferRoute": "Aktif Transfer Hattı"
+    },
+    "popup": {
+      "transferBadge": "Onaylanmış EduShare Transferi",
+      "students": "ÖĞRENCİ",
+      "teachers": "ÖĞRETMEN",
+      "classrooms": "DERSLİK",
+      "savings": "Tasarruf",
+      "co2": "CO2"
+    }
+  },
+  "hitl": {
+    "title": "Ajan Karar Paneli (HITL)",
+    "subtitle": "Human-in-the-Loop • Müdür Onay Sırası",
+    "noTasksTitle": "Onay Bekleyen Transfer Yok",
+    "noTasksDesc": "EduShare Ajanı arka planda okulların ihtiyaçlarını ve envanter fazlalıklarını otonom olarak taramaya devam ediyor.",
+    "agentBadge": "Strands Agent Önerisi",
+    "distance": "Mesafe",
+    "districts": "İlçe",
+    "savings": "Tasarruf",
+    "preventedCo2": "Önlenen CO2",
+    "reasoningTitle": "Yapay Zeka Karar Gerekçesi",
+    "rejectBtn": "Reddet",
+    "approveBtn": "Onayla & Başlat",
+    "footerNote": "Human-in-the-Loop İlkesi: Hiçbir transfer okul müdürünün onayı olmadan gerçekleştirilmez.",
+    "bannerTitle": "Müdür Onayı Bekleniyor:",
+    "bannerText": "EduShare Ajanı {{count}} adet yeni lojistik eşleşme hazırladı. Kararı onaylamak için inceleyin.",
+    "reviewDecisions": "Kararları İncele"
+  },
+  "surplus": {
+    "modalTitle": "Fazla Eşya Bildirimi",
+    "modalSubtitle": "Fotoğraf yükleyin; Amazon Bedrock yapay zekası ayrıntıları otomatik çıkarsın.",
+    "photoLabel": "Eşya Fotoğrafı (Opsiyonel / Bedrock Vision Tanıma)",
+    "dropzoneTitle": "Fotoğraf Yükleyin veya Sürükleyin",
+    "dropzoneDesc": "Amazon Bedrock Nova Pro modeli nesneyi, miktarını ve kondisyonunu otomatik doldurur.",
+    "aiDetected": "Bedrock ile Tanındı",
+    "analyzing": "Amazon Bedrock Görseli İnceliyor...",
+    "changePhoto": "Fotoğrafı değiştirmek için tıklayın.",
+    "itemTitle": "Eşya Başlığı *",
+    "itemTitlePlaceholder": "Örn: 15 Adet Lenovo Masaüstü Bilgisayar & Monitör",
+    "category": "Kategori",
+    "condition": "Fiziksel Durum",
+    "quantity": "Adet / Miktar",
+    "estimatedValue": "Tahmini Birim Değer (₺)",
+    "notes": "Açıklama & Notlar",
+    "notesPlaceholder": "Eşyaların durumu, parça eksikleri veya teslim detayları...",
+    "cancel": "Vazgeç",
+    "submit": "Fazla Eşyayı Bildir & Ajanı Başlat",
+    "categories": {
+      "it": "Bilişim & Bilgisayar",
+      "furniture": "Mobilya & Sıra",
+      "science": "Fen & Laboratuvar",
+      "library": "Kütüphane & Kitap",
+      "sports": "Spor & Beden Eğitimi",
+      "music": "Müzik & Sanat",
+      "office": "Ofis & İdari Donanım",
+      "general": "Genel Donanım"
+    },
+    "conditions": {
+      "new": "Sıfır / Paketli",
+      "veryGood": "Çok İyi (Hafif Kullanılmış)",
+      "good": "İyi (Çalışır Durumda)",
+      "needsRepair": "Bakım / Onarım İhtiyacı Var"
+    }
+  },
+  "need": {
+    "modalTitle": "Okul İhtiyaç Bildirimi",
+    "modalSubtitle": "Eğitim materyali veya donanım talebinizi komşu okullara duyurun.",
+    "needTitle": "İhtiyaç Başlığı *",
+    "needTitlePlaceholder": "Örn: Kodlama Atölyesi İçin 10 Adet Bilgisayar",
+    "category": "Kategori",
+    "urgency": "Aciliyet Seviyesi",
+    "quantityNeeded": "Gereken Miktar (Adet)",
+    "description": "Açıklama / Amacı",
+    "descriptionPlaceholder": "İhtiyacın gerekçesi, kullanılacağı sınıf veya laboratuvar...",
+    "cancel": "Vazgeç",
+    "submit": "İhtiyaç Talebi Oluştur",
+    "urgencies": {
+      "critical": "Kritik / Çok Acil",
+      "high": "Yüksek Öncelikli",
+      "medium": "Normal Öncelik",
+      "low": "Düşük Öncelik"
+    }
+  },
+  "auth": {
+    "modalTitle": "Okul Yönetim Portalı",
+    "modalSubtitle": "EduShare Ajanı ile kaynak paylaşımına katılın.",
+    "tabLogin": "Okul Girişi",
+    "tabRegister": "Yeni Okul Kaydı",
+    "quickLoginHint": "Hızlı Test İçin Örnek Okul Seçebilirsiniz:",
+    "email": "Okul E-posta Adresi",
+    "password": "Şifre",
+    "loginBtn": "Giriş Yap",
+    "schoolName": "Okul Resmi Adı *",
+    "schoolNamePlaceholder": "Örn: Üsküdar Fen Lisesi",
+    "district": "İlçe",
+    "schoolType": "Okul Türü",
+    "capacityMetrics": "Kurum Kapasite Bilgileri (Basit Sorular)",
+    "studentCount": "Öğrenci Sayısı",
+    "teacherCount": "Öğretmen Sayısı",
+    "classroomCount": "Derslik Sayısı",
+    "latitude": "Enlem (Latitude)",
+    "longitude": "Boylam (Longitude)",
+    "principalName": "Müdür Adı",
+    "phone": "İletişim Telefonu",
+    "registerBtn": "Okulu Kaydet ve Giriş Yap",
+    "schoolTypes": {
+      "anadolu": "Anadolu Lisesi",
+      "fen": "Fen Lisesi",
+      "mesleki": "Mesleki ve Teknik Lise",
+      "imamHatip": "İmam Hatip Lisesi",
+      "ortaokul": "Ortaokul",
+      "ilkokul": "İlkokul"
+    }
+  },
+  "profile": {
+    "modalTitle": "Okul Kurumsal Profili",
+    "modalSubtitle": "Kapasite, konum ve iletişim bilgilerini güncelleyin.",
+    "schoolName": "Okul Adı",
+    "district": "İlçe",
+    "schoolType": "Okul Türü",
+    "capacityMetrics": "Kurum Kapasite Metrikleri",
+    "studentCount": "Öğrenci Sayısı",
+    "teacherCount": "Öğretmen Sayısı",
+    "classroomCount": "Derslik Sayısı",
+    "latitude": "Enlem (Latitude)",
+    "longitude": "Boylam (Longitude)",
+    "principalName": "Müdür Adı",
+    "phone": "Telefon",
+    "close": "Kapat",
+    "save": "Değişiklikleri Kaydet",
+    "success": "Profil bilgileri başarıyla güncellendi!"
+  },
+  "feed": {
+    "transfersTab": "Tamamlanan Transferler ({{count}})",
+    "surplusTab": "Mevcut Fazla Eşyalar ({{count}})",
+    "needsTab": "Açık İhtiyaçlar ({{count}})",
+    "emptyTransfers": "Henüz tamamlanmış transfer kaydı bulunmuyor.",
+    "emptySurplus": "Şu anda açık fazla eşya bulunmamaktadır.",
+    "emptyNeeds": "Şu anda açık bir ihtiyaç talebi bulunmamaktadır.",
+    "successfulTransfer": "Başarılı Transfer",
+    "today": "Bugün",
+    "savingsLabel": "Tasarruf",
+    "co2Label": "CO2",
+    "schoolLabel": "Okul:",
+    "conditionLabel": "Durum:",
+    "requestedBy": "Talep Eden:",
+    "neededLabel": "Gereken:"
+  },
+  "footer": {
+    "tagline": "EduShare Agent • Agents for Humans Hackathon (Devpost & AWS)",
+    "credits": "Track: Good Neighbor Agents • Powered by Strands Agents SDK & Amazon Bedrock (Nova Pro) • Real PostgreSQL Persistence"
+  }
+}

@@ -1,6 +1,7 @@
 import React, { useState, useRef } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { X, UploadCloud, Sparkles, Image as ImageIcon, Loader2, Check, AlertCircle } from 'lucide-react';
+import { X, UploadCloud, Sparkles, Loader2, Check, AlertCircle } from 'lucide-react';
+import { useTranslation } from 'react-i18next';
 import api from '../services/api';
 import { useAuth } from '../context/AuthContext';
 
@@ -10,6 +11,7 @@ export const SurplusModal = ({
   onItemCreated,
   onRequireAuth
 }) => {
+  const { t } = useTranslation();
   const { isAuthenticated } = useAuth();
   const fileInputRef = useRef(null);
 
@@ -28,15 +30,22 @@ export const SurplusModal = ({
   const [estimatedUnitValue, setEstimatedUnitValue] = useState(1500);
   const [rawText, setRawText] = useState('');
 
-  const categories = [
-    'Bilişim & Bilgisayar',
-    'Mobilya & Sıra',
-    'Fen & Laboratuvar',
-    'Kütüphane & Kitap',
-    'Spor & Beden Eğitimi',
-    'Müzik & Sanat',
-    'Ofis & İdari Donanım',
-    'Genel Donanım'
+  const categoryOptions = [
+    { value: 'Bilişim & Bilgisayar', label: t('surplus.categories.it') },
+    { value: 'Mobilya & Sıra', label: t('surplus.categories.furniture') },
+    { value: 'Fen & Laboratuvar', label: t('surplus.categories.science') },
+    { value: 'Kütüphane & Kitap', label: t('surplus.categories.library') },
+    { value: 'Spor & Beden Eğitimi', label: t('surplus.categories.sports') },
+    { value: 'Müzik & Sanat', label: t('surplus.categories.music') },
+    { value: 'Ofis & İdari Donanım', label: t('surplus.categories.office') },
+    { value: 'Genel Donanım', label: t('surplus.categories.general') }
+  ];
+
+  const conditionOptions = [
+    { value: 'Sıfır / Paketli', label: t('surplus.conditions.new') },
+    { value: 'Çok İyi (Hafif Kullanılmış)', label: t('surplus.conditions.veryGood') },
+    { value: 'İyi', label: t('surplus.conditions.good') },
+    { value: 'Bakım / Onarım İhtiyacı Var', label: t('surplus.conditions.needsRepair') }
   ];
 
   const handleFileChange = async (e) => {
@@ -50,7 +59,6 @@ export const SurplusModal = ({
     setAiFilled(false);
 
     try {
-      // Call Amazon Bedrock Multimodal Vision endpoint
       const result = await api.analyzeImage(file);
       if (result) {
         setTitle(result.title || '');
@@ -63,7 +71,7 @@ export const SurplusModal = ({
       }
     } catch (err) {
       console.error('Vision analysis error:', err);
-      setError('Görsel analiz edilirken bir hata oluştu veya bağlantı zaman aşımına uğradı. Bilgileri manuel girebilirsiniz.');
+      setError('Vision analysis could not be completed. You can manually enter item details.');
     } finally {
       setAnalyzingImage(false);
     }
@@ -78,7 +86,7 @@ export const SurplusModal = ({
     }
 
     if (!title) {
-      setError('Lütfen eşya başlığını belirtiniz.');
+      setError('Please provide an equipment title.');
       return;
     }
 
@@ -100,7 +108,7 @@ export const SurplusModal = ({
       onClose();
       resetForm();
     } catch (err) {
-      setError(err?.response?.data?.detail || 'Eşya kaydedilirken bir hata oluştu.');
+      setError(err?.response?.data?.detail || 'Failed to save surplus item.');
     } finally {
       setSubmitting(false);
     }
@@ -120,7 +128,6 @@ export const SurplusModal = ({
     <AnimatePresence>
       {isOpen && (
         <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
-          {/* Backdrop */}
           <motion.div
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
@@ -129,7 +136,6 @@ export const SurplusModal = ({
             className="fixed inset-0 bg-slate-900/50 backdrop-blur-xs"
           />
 
-          {/* Modal Content */}
           <motion.div
             initial={{ opacity: 0, scale: 0.95, y: 15 }}
             animate={{ opacity: 1, scale: 1, y: 0 }}
@@ -144,10 +150,10 @@ export const SurplusModal = ({
                 </div>
                 <div>
                   <h3 className="font-extrabold text-lg text-slate-900">
-                    Fazla Eşya Bildirimi
+                    {t('surplus.modalTitle')}
                   </h3>
                   <p className="text-xs text-slate-500 font-medium">
-                    Fotoğraf yükleyin; Amazon Bedrock yapay zekası ayrıntıları otomatik çıkarsın.
+                    {t('surplus.modalSubtitle')}
                   </p>
                 </div>
               </div>
@@ -165,7 +171,7 @@ export const SurplusModal = ({
               {/* Photo Upload Area */}
               <div>
                 <label className="block text-xs font-bold uppercase tracking-wider text-slate-700 mb-2">
-                  Eşya Fotoğrafı (Opsiyonel / Yapay Zeka Tanıma)
+                  {t('surplus.photoLabel')}
                 </label>
                 
                 <input
@@ -196,18 +202,18 @@ export const SurplusModal = ({
                           <span className="text-xs font-bold text-slate-900">{imageFile?.name}</span>
                           {aiFilled && (
                             <span className="px-2 py-0.5 rounded-full text-[10px] font-bold bg-emerald-100 text-emerald-800 border border-emerald-300 flex items-center">
-                              <Check className="w-3 h-3 mr-0.5" /> Bedrock ile Tanındı
+                              <Check className="w-3 h-3 mr-0.5" /> {t('surplus.aiDetected')}
                             </span>
                           )}
                         </div>
                         {analyzingImage ? (
                           <div className="flex items-center space-x-2 text-xs font-semibold text-amber-600 mt-2">
                             <Loader2 className="w-4 h-4 animate-spin" />
-                            <span>Amazon Bedrock Görseli İnceliyor...</span>
+                            <span>{t('surplus.analyzing')}</span>
                           </div>
                         ) : (
                           <p className="text-xs text-slate-500 mt-1">
-                            Fotoğrafı değiştirmek için tıklayın.
+                            {t('surplus.changePhoto')}
                           </p>
                         )}
                       </div>
@@ -218,10 +224,10 @@ export const SurplusModal = ({
                         <UploadCloud className="w-6 h-6" />
                       </div>
                       <div className="text-sm font-bold text-slate-800">
-                        Fotoğraf Yükleyin veya Sürükleyin
+                        {t('surplus.dropzoneTitle')}
                       </div>
                       <p className="text-xs text-slate-400">
-                        Amazon Bedrock modeli nesneyi, miktarını ve kondisyonunu otomatik doldurur.
+                        {t('surplus.dropzoneDesc')}
                       </p>
                     </div>
                   )}
@@ -231,14 +237,14 @@ export const SurplusModal = ({
               {/* Title */}
               <div>
                 <label className="block text-xs font-bold text-slate-700 uppercase mb-1">
-                  Eşya Başlığı *
+                  {t('surplus.itemTitle')}
                 </label>
                 <input
                   type="text"
                   required
                   value={title}
                   onChange={(e) => setTitle(e.target.value)}
-                  placeholder="Örn: 15 Adet Lenovo Masaüstü Bilgisayar & Monitör"
+                  placeholder={t('surplus.itemTitlePlaceholder')}
                   className="w-full px-4 py-2.5 rounded-xl border border-slate-300 focus:outline-none focus:ring-2 focus:ring-emerald-500 text-sm font-medium"
                 />
               </div>
@@ -247,32 +253,31 @@ export const SurplusModal = ({
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                 <div>
                   <label className="block text-xs font-bold text-slate-700 uppercase mb-1">
-                    Kategori
+                    {t('surplus.category')}
                   </label>
                   <select
                     value={itemCategory}
                     onChange={(e) => setItemCategory(e.target.value)}
                     className="w-full px-3.5 py-2.5 rounded-xl border border-slate-300 bg-white text-sm font-medium focus:outline-none focus:ring-2 focus:ring-emerald-500"
                   >
-                    {categories.map((c) => (
-                      <option key={c} value={c}>{c}</option>
+                    {categoryOptions.map((c) => (
+                      <option key={c.value} value={c.value}>{c.label}</option>
                     ))}
                   </select>
                 </div>
 
                 <div>
                   <label className="block text-xs font-bold text-slate-700 uppercase mb-1">
-                    Fiziksel Durum
+                    {t('surplus.condition')}
                   </label>
                   <select
                     value={conditionRating}
                     onChange={(e) => setConditionRating(e.target.value)}
                     className="w-full px-3.5 py-2.5 rounded-xl border border-slate-300 bg-white text-sm font-medium focus:outline-none focus:ring-2 focus:ring-emerald-500"
                   >
-                    <option value="Sıfır / Paketli">Sıfır / Paketli</option>
-                    <option value="Çok İyi (Hafif Kullanılmış)">Çok İyi (Hafif Kullanılmış)</option>
-                    <option value="İyi">İyi (Çalışır Durumda)</option>
-                    <option value="Bakım / Onarım İhtiyacı Var">Bakım / Onarım İhtiyacı Var</option>
+                    {conditionOptions.map((c) => (
+                      <option key={c.value} value={c.value}>{c.label}</option>
+                    ))}
                   </select>
                 </div>
               </div>
@@ -281,7 +286,7 @@ export const SurplusModal = ({
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                 <div>
                   <label className="block text-xs font-bold text-slate-700 uppercase mb-1">
-                    Adet / Miktar
+                    {t('surplus.quantity')}
                   </label>
                   <input
                     type="number"
@@ -294,7 +299,7 @@ export const SurplusModal = ({
 
                 <div>
                   <label className="block text-xs font-bold text-slate-700 uppercase mb-1">
-                    Tahmini Birim Değer (₺)
+                    {t('surplus.estimatedValue')}
                   </label>
                   <input
                     type="number"
@@ -309,13 +314,13 @@ export const SurplusModal = ({
               {/* Notes / Raw Text */}
               <div>
                 <label className="block text-xs font-bold text-slate-700 uppercase mb-1">
-                  Açıklama & Notlar
+                  {t('surplus.notes')}
                 </label>
                 <textarea
                   rows="3"
                   value={rawText}
                   onChange={(e) => setRawText(e.target.value)}
-                  placeholder="Eşyaların durumu, parça eksikleri veya teslim detayları..."
+                  placeholder={t('surplus.notesPlaceholder')}
                   className="w-full px-4 py-2 rounded-xl border border-slate-300 focus:outline-none focus:ring-2 focus:ring-emerald-500 text-sm"
                 />
               </div>
@@ -334,7 +339,7 @@ export const SurplusModal = ({
                   onClick={onClose}
                   className="px-4 py-2.5 rounded-xl border border-slate-300 text-slate-700 text-sm font-semibold hover:bg-slate-50 transition-colors"
                 >
-                  Vazgeç
+                  {t('surplus.cancel')}
                 </button>
                 <button
                   type="submit"
@@ -342,7 +347,7 @@ export const SurplusModal = ({
                   className="flex items-center space-x-2 px-6 py-2.5 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white text-sm font-bold shadow-md shadow-emerald-600/30 transition-all disabled:opacity-50"
                 >
                   {submitting && <Loader2 className="w-4 h-4 animate-spin" />}
-                  <span>Fazla Eşyayı Bildir & Ajanı Başlat</span>
+                  <span>{t('surplus.submit')}</span>
                 </button>
               </div>
 

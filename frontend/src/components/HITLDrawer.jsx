@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { X, CheckCircle, XCircle, Sparkles, ArrowRight, ShieldCheck, Coins, Leaf, MapPin, Loader2 } from 'lucide-react';
+import { useTranslation } from 'react-i18next';
 import api from '../services/api';
 
 export const HITLDrawer = ({
@@ -9,6 +10,10 @@ export const HITLDrawer = ({
   tasks = [],
   onTaskProcessed
 }) => {
+  const { t, i18n } = useTranslation();
+  const locale = i18n.language?.startsWith('en') ? 'en-US' : 'tr-TR';
+  const currencySymbol = i18n.language?.startsWith('en') ? '$' : '₺';
+
   const [processingId, setProcessingId] = useState(null);
   const [error, setError] = useState(null);
 
@@ -19,7 +24,7 @@ export const HITLDrawer = ({
       await api.approveTask(taskId);
       onTaskProcessed && onTaskProcessed(taskId, 'APPROVED');
     } catch (err) {
-      setError(err?.response?.data?.detail || 'Onaylama sırasında bir hata oluştu.');
+      setError(err?.response?.data?.detail || 'Approval failed.');
     } finally {
       setProcessingId(null);
     }
@@ -32,13 +37,13 @@ export const HITLDrawer = ({
       await api.rejectTask(taskId);
       onTaskProcessed && onTaskProcessed(taskId, 'REJECTED');
     } catch (err) {
-      setError(err?.response?.data?.detail || 'Reddetme sırasında bir hata oluştu.');
+      setError(err?.response?.data?.detail || 'Rejection failed.');
     } finally {
       setProcessingId(null);
     }
   };
 
-  const pendingTasks = tasks.filter((t) => t.status === 'AWAITING_HUMAN_APPROVAL');
+  const pendingTasks = tasks.filter((tItem) => tItem.status === 'AWAITING_HUMAN_APPROVAL');
 
   return (
     <AnimatePresence>
@@ -69,10 +74,10 @@ export const HITLDrawer = ({
                 </div>
                 <div>
                   <h3 className="font-extrabold text-lg text-slate-900">
-                    Ajan Karar Paneli (HITL)
+                    {t('hitl.title')}
                   </h3>
                   <p className="text-xs text-slate-500 font-medium">
-                    Human-in-the-Loop • Müdür Onay Sırası ({pendingTasks.length})
+                    {t('hitl.subtitle')} ({pendingTasks.length})
                   </p>
                 </div>
               </div>
@@ -99,10 +104,10 @@ export const HITLDrawer = ({
                     <CheckCircle className="w-8 h-8 text-emerald-500" />
                   </div>
                   <h4 className="font-bold text-slate-800 text-base mb-1">
-                    Onay Bekleyen Transfer Yok
+                    {t('hitl.noTasksTitle')}
                   </h4>
                   <p className="text-xs text-slate-500 max-w-xs mx-auto">
-                    EduShare Ajanı arka planda okulların ihtiyaçlarını ve envanter fazlalıklarını otonom olarak taramaya devam ediyor.
+                    {t('hitl.noTasksDesc')}
                   </p>
                 </div>
               ) : (
@@ -120,14 +125,14 @@ export const HITLDrawer = ({
                         <div>
                           <span className="inline-flex items-center space-x-1 px-2.5 py-0.5 rounded-full text-[11px] font-bold bg-amber-200 text-amber-900">
                             <Sparkles className="w-3 h-3 text-amber-600 mr-1" />
-                            Strands Agent Önerisi
+                            {t('hitl.agentBadge')}
                           </span>
                           <h4 className="font-bold text-base text-slate-900 mt-1">
                             {card.title || card.item_title}
                           </h4>
                         </div>
                         <span className="text-xs font-black text-amber-800 bg-white px-2.5 py-1 rounded-lg border border-amber-200 shadow-2xs shrink-0">
-                          {card.quantity} Adet
+                          {card.quantity} {t('hero.units.items')}
                         </span>
                       </div>
 
@@ -146,8 +151,8 @@ export const HITLDrawer = ({
                         </div>
 
                         <div className="flex items-center justify-between text-[11px] text-slate-500 pt-2 border-t border-slate-100">
-                          <span>Mesafe: <strong>{card.distance_km} km</strong></span>
-                          <span>İlçe: {card.from_district} ➔ {card.to_district}</span>
+                          <span>{t('hitl.distance')}: <strong>{card.distance_km} km</strong></span>
+                          <span>{card.from_district} ➔ {card.to_district}</span>
                         </div>
                       </div>
 
@@ -156,14 +161,14 @@ export const HITLDrawer = ({
                         <div className="flex items-center space-x-2 bg-emerald-100/70 text-emerald-950 p-2.5 rounded-xl border border-emerald-200">
                           <Coins className="w-4 h-4 text-emerald-700 shrink-0" />
                           <div>
-                            <div className="text-[10px] text-emerald-800 uppercase font-semibold">Tasarruf</div>
-                            <div className="text-sm">₺{Number(card.estimated_savings_tl || 0).toLocaleString('tr-TR')}</div>
+                            <div className="text-[10px] text-emerald-800 uppercase font-semibold">{t('hitl.savings')}</div>
+                            <div className="text-sm">{currencySymbol}{Number(card.estimated_savings_tl || 0).toLocaleString(locale)}</div>
                           </div>
                         </div>
                         <div className="flex items-center space-x-2 bg-blue-100/70 text-blue-950 p-2.5 rounded-xl border border-blue-200">
                           <Leaf className="w-4 h-4 text-blue-700 shrink-0" />
                           <div>
-                            <div className="text-[10px] text-blue-800 uppercase font-semibold">Önlenen CO2</div>
+                            <div className="text-[10px] text-blue-800 uppercase font-semibold">{t('hitl.preventedCo2')}</div>
                             <div className="text-sm">{Number(card.prevented_co2_kg || 0).toFixed(1)} kg</div>
                           </div>
                         </div>
@@ -172,7 +177,7 @@ export const HITLDrawer = ({
                       {/* Agent Reasoning */}
                       {card.reasoning && (
                         <div className="text-xs text-slate-700 bg-white/80 p-3 rounded-xl border border-amber-200/60 leading-relaxed font-normal">
-                          <span className="font-bold text-amber-900 block mb-0.5">Yapay Zeka Karar Gerekçesi:</span>
+                          <span className="font-bold text-amber-900 block mb-0.5">{t('hitl.reasoningTitle')}:</span>
                           {card.reasoning}
                         </div>
                       )}
@@ -185,7 +190,7 @@ export const HITLDrawer = ({
                           className="flex items-center justify-center space-x-1.5 py-2.5 px-3 rounded-xl border border-slate-300 bg-white hover:bg-slate-50 text-slate-700 text-xs font-bold transition-all disabled:opacity-50"
                         >
                           <XCircle className="w-4 h-4 text-slate-400" />
-                          <span>Reddet</span>
+                          <span>{t('hitl.rejectBtn')}</span>
                         </button>
                         <button
                           onClick={() => handleApprove(task.id)}
@@ -197,7 +202,7 @@ export const HITLDrawer = ({
                           ) : (
                             <CheckCircle className="w-4 h-4 text-emerald-200" />
                           )}
-                          <span>Onayla & Başlat</span>
+                          <span>{t('hitl.approveBtn')}</span>
                         </button>
                       </div>
 
@@ -209,7 +214,7 @@ export const HITLDrawer = ({
 
             {/* Footer */}
             <div className="p-4 border-t border-slate-200 bg-slate-50 text-center text-[11px] text-slate-500">
-              Human-in-the-Loop İlkesi: Hiçbir transfer okul müdürünün onayı olmadan gerçekleştirilmez.
+              {t('hitl.footerNote')}
             </div>
           </motion.div>
         </>

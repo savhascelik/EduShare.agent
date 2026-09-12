@@ -1,14 +1,19 @@
 import React from 'react';
 import { motion } from 'framer-motion';
 import { Coins, PackageCheck, Leaf, School } from 'lucide-react';
+import { useTranslation } from 'react-i18next';
 
 export const HeroMetrics = ({ stats }) => {
+  const { t, i18n } = useTranslation();
+  const locale = i18n.language?.startsWith('en') ? 'en-US' : 'tr-TR';
+  const currencySymbol = i18n.language?.startsWith('en') ? '$' : '₺';
+
   const metrics = [
     {
       id: 'savings',
-      title: 'Kamu Tasarrufu',
-      value: `₺${(stats?.total_savings_tl || 0).toLocaleString('tr-TR', { maximumFractionDigits: 0 })}`,
-      description: 'Yeniden paylaşımla bütçede kalan kamu kaynağı',
+      title: t('hero.savingsTitle'),
+      value: `${currencySymbol}${(stats?.total_savings_tl || 0).toLocaleString(locale, { maximumFractionDigits: 0 })}`,
+      description: t('hero.savingsDesc'),
       icon: Coins,
       gradient: 'from-amber-500/10 to-amber-500/5',
       border: 'border-amber-200/80',
@@ -17,9 +22,9 @@ export const HeroMetrics = ({ stats }) => {
     },
     {
       id: 'items',
-      title: 'Paylaşılan Ekipman',
-      value: `${(stats?.total_items_rehomed || 0).toLocaleString('tr-TR')} Adet`,
-      description: 'Atıl depolardan sınıflara kazandırılan eşya',
+      title: t('hero.itemsTitle'),
+      value: `${(stats?.total_items_rehomed || 0).toLocaleString(locale)} ${t('hero.units.items')}`,
+      description: t('hero.itemsDesc'),
       icon: PackageCheck,
       gradient: 'from-blue-500/10 to-blue-500/5',
       border: 'border-blue-200/80',
@@ -28,9 +33,9 @@ export const HeroMetrics = ({ stats }) => {
     },
     {
       id: 'co2',
-      title: 'Önlenen Karbon Ayak İzi',
-      value: `${(stats?.total_co2_prevented_kg || 0).toLocaleString('tr-TR', { maximumFractionDigits: 1 })} kg`,
-      description: 'Yeni üretim ve ambalaj önlenerek korunan doğa',
+      title: t('hero.co2Title'),
+      value: `${(stats?.total_co2_prevented_kg || 0).toLocaleString(locale, { maximumFractionDigits: 1 })} ${t('hero.units.kg')}`,
+      description: t('hero.co2Desc'),
       icon: Leaf,
       gradient: 'from-emerald-500/10 to-emerald-500/5',
       border: 'border-emerald-200/80',
@@ -39,9 +44,9 @@ export const HeroMetrics = ({ stats }) => {
     },
     {
       id: 'schools',
-      title: 'Ağdaki Eğitim Kurumu',
-      value: `${stats?.active_schools_count || 0} Okul`,
-      description: 'Dayanışma ağındaki aktif okul ve atölye',
+      title: t('hero.schoolsTitle'),
+      value: `${stats?.active_schools_count || 0} ${t('hero.units.schools')}`,
+      description: t('hero.schoolsDesc'),
       icon: School,
       gradient: 'from-purple-500/10 to-purple-500/5',
       border: 'border-purple-200/80',

@@ -1,9 +1,11 @@
 import React, { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { X, Building2, Users, GraduationCap, School, Phone, User, MapPin, Save, Loader2, Check } from 'lucide-react';
+import { X, Building2, Save, Loader2, Check } from 'lucide-react';
+import { useTranslation } from 'react-i18next';
 import { useAuth } from '../context/AuthContext';
 
 export const ProfileModal = ({ isOpen, onClose }) => {
+  const { t } = useTranslation();
   const { currentSchool, updateProfile } = useAuth();
 
   const [name, setName] = useState('');
@@ -32,7 +34,7 @@ export const ProfileModal = ({ isOpen, onClose }) => {
       setStudentCount(currentSchool.student_count || 0);
       setTeacherCount(currentSchool.teacher_count || 0);
       setClassroomCount(currentSchool.classroom_count || 0);
-      setSchoolType(currentSchool.school_type || 'Anadolu Lisesi');
+      setSchoolType(currentSchool.school_type || 'Secondary / High School');
       setPrincipalName(currentSchool.principal_name || '');
       setPhone(currentSchool.phone || '');
     }
@@ -64,7 +66,7 @@ export const ProfileModal = ({ isOpen, onClose }) => {
         onClose();
       }, 1200);
     } catch (err) {
-      setError(err?.response?.data?.detail || 'Profil güncellenirken bir hata oluştu.');
+      setError(err?.response?.data?.detail || 'Profile update failed.');
     } finally {
       setSaving(false);
     }
@@ -98,10 +100,10 @@ export const ProfileModal = ({ isOpen, onClose }) => {
                 </div>
                 <div>
                   <h3 className="font-extrabold text-lg text-slate-900">
-                    Okul Kurumsal Profili
+                    {t('profile.modalTitle')}
                   </h3>
                   <p className="text-xs text-slate-500 font-medium">
-                    Kapasite, konum ve iletişim bilgilerini güncelleyin.
+                    {t('profile.modalSubtitle')}
                   </p>
                 </div>
               </div>
@@ -118,7 +120,7 @@ export const ProfileModal = ({ isOpen, onClose }) => {
               
               <div>
                 <label className="block text-xs font-bold text-slate-700 uppercase mb-1">
-                  Okul Adı
+                  {t('profile.schoolName')}
                 </label>
                 <input
                   type="text"
@@ -132,7 +134,7 @@ export const ProfileModal = ({ isOpen, onClose }) => {
               <div className="grid grid-cols-2 gap-3">
                 <div>
                   <label className="block text-xs font-bold text-slate-700 uppercase mb-1">
-                    İlçe
+                    {t('profile.district')}
                   </label>
                   <input
                     type="text"
@@ -143,7 +145,7 @@ export const ProfileModal = ({ isOpen, onClose }) => {
                 </div>
                 <div>
                   <label className="block text-xs font-bold text-slate-700 uppercase mb-1">
-                    Okul Türü
+                    {t('profile.schoolType')}
                   </label>
                   <input
                     type="text"
@@ -157,12 +159,12 @@ export const ProfileModal = ({ isOpen, onClose }) => {
               {/* Capacity Questions */}
               <div className="bg-amber-50/50 p-3.5 rounded-2xl border border-amber-200/80 space-y-2">
                 <div className="text-[11px] font-bold text-amber-900 uppercase">
-                  Kurum Kapasite Metrikleri
+                  {t('profile.capacityMetrics')}
                 </div>
                 <div className="grid grid-cols-3 gap-2">
                   <div>
                     <label className="block text-[10px] font-bold text-slate-500 uppercase">
-                      Öğrenci Sayısı
+                      {t('profile.studentCount')}
                     </label>
                     <input
                       type="number"
@@ -173,7 +175,7 @@ export const ProfileModal = ({ isOpen, onClose }) => {
                   </div>
                   <div>
                     <label className="block text-[10px] font-bold text-slate-500 uppercase">
-                      Öğretmen Sayısı
+                      {t('profile.teacherCount')}
                     </label>
                     <input
                       type="number"
@@ -184,7 +186,7 @@ export const ProfileModal = ({ isOpen, onClose }) => {
                   </div>
                   <div>
                     <label className="block text-[10px] font-bold text-slate-500 uppercase">
-                      Derslik Sayısı
+                      {t('profile.classroomCount')}
                     </label>
                     <input
                       type="number"
@@ -200,7 +202,7 @@ export const ProfileModal = ({ isOpen, onClose }) => {
               <div className="grid grid-cols-2 gap-3">
                 <div>
                   <label className="block text-xs font-bold text-slate-700 uppercase mb-1">
-                    Enlem (Latitude)
+                    {t('profile.latitude')}
                   </label>
                   <input
                     type="number"
@@ -212,7 +214,7 @@ export const ProfileModal = ({ isOpen, onClose }) => {
                 </div>
                 <div>
                   <label className="block text-xs font-bold text-slate-700 uppercase mb-1">
-                    Boylam (Longitude)
+                    {t('profile.longitude')}
                   </label>
                   <input
                     type="number"
@@ -228,7 +230,7 @@ export const ProfileModal = ({ isOpen, onClose }) => {
               <div className="grid grid-cols-2 gap-3">
                 <div>
                   <label className="block text-xs font-bold text-slate-700 uppercase mb-1">
-                    Müdür Adı
+                    {t('profile.principalName')}
                   </label>
                   <input
                     type="text"
@@ -239,7 +241,7 @@ export const ProfileModal = ({ isOpen, onClose }) => {
                 </div>
                 <div>
                   <label className="block text-xs font-bold text-slate-700 uppercase mb-1">
-                    Telefon
+                    {t('profile.phone')}
                   </label>
                   <input
                     type="text"
@@ -259,7 +261,7 @@ export const ProfileModal = ({ isOpen, onClose }) => {
               {savedSuccess && (
                 <div className="p-3 rounded-xl bg-emerald-50 border border-emerald-200 text-emerald-800 text-xs font-semibold flex items-center space-x-1.5">
                   <Check className="w-4 h-4 text-emerald-600" />
-                  <span>Profil bilgileri başarıyla güncellendi!</span>
+                  <span>{t('profile.success')}</span>
                 </div>
               )}
 
@@ -269,7 +271,7 @@ export const ProfileModal = ({ isOpen, onClose }) => {
                   onClick={onClose}
                   className="px-4 py-2 rounded-xl border border-slate-300 text-slate-700 text-sm font-semibold hover:bg-slate-50"
                 >
-                  Kapat
+                  {t('profile.close')}
                 </button>
                 <button
                   type="submit"
@@ -277,7 +279,7 @@ export const ProfileModal = ({ isOpen, onClose }) => {
                   className="flex items-center space-x-2 px-6 py-2 rounded-xl bg-amber-600 hover:bg-amber-700 text-white text-sm font-bold shadow-md transition-all disabled:opacity-50"
                 >
                   {saving ? <Loader2 className="w-4 h-4 animate-spin" /> : <Save className="w-4 h-4" />}
-                  <span>Değişiklikleri Kaydet</span>
+                  <span>{t('profile.save')}</span>
                 </button>
               </div>
 

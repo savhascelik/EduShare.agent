@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { X, HandHeart, Loader2, AlertCircle } from 'lucide-react';
+import { useTranslation } from 'react-i18next';
 import api from '../services/api';
 import { useAuth } from '../context/AuthContext';
 
@@ -10,6 +11,7 @@ export const NeedModal = ({
   onNeedCreated,
   onRequireAuth
 }) => {
+  const { t } = useTranslation();
   const { isAuthenticated } = useAuth();
   const [submitting, setSubmitting] = useState(false);
   const [error, setError] = useState(null);
@@ -20,15 +22,22 @@ export const NeedModal = ({
   const [urgencyLevel, setUrgencyLevel] = useState('HIGH');
   const [rawText, setRawText] = useState('');
 
-  const categories = [
-    'Bilişim & Bilgisayar',
-    'Mobilya & Sıra',
-    'Fen & Laboratuvar',
-    'Kütüphane & Kitap',
-    'Spor & Beden Eğitimi',
-    'Müzik & Sanat',
-    'Ofis & İdari Donanım',
-    'Genel Donanım'
+  const categoryOptions = [
+    { value: 'Bilişim & Bilgisayar', label: t('surplus.categories.it') },
+    { value: 'Mobilya & Sıra', label: t('surplus.categories.furniture') },
+    { value: 'Fen & Laboratuvar', label: t('surplus.categories.science') },
+    { value: 'Kütüphane & Kitap', label: t('surplus.categories.library') },
+    { value: 'Spor & Beden Eğitimi', label: t('surplus.categories.sports') },
+    { value: 'Müzik & Sanat', label: t('surplus.categories.music') },
+    { value: 'Ofis & İdari Donanım', label: t('surplus.categories.office') },
+    { value: 'Genel Donanım', label: t('surplus.categories.general') }
+  ];
+
+  const urgencyOptions = [
+    { value: 'CRITICAL', label: t('need.urgencies.critical') },
+    { value: 'HIGH', label: t('need.urgencies.high') },
+    { value: 'MEDIUM', label: t('need.urgencies.medium') },
+    { value: 'LOW', label: t('need.urgencies.low') }
   ];
 
   const handleSubmit = async (e) => {
@@ -40,7 +49,7 @@ export const NeedModal = ({
     }
 
     if (!title) {
-      setError('Lütfen ihtiyaç başlığını giriniz.');
+      setError('Please specify a request title.');
       return;
     }
 
@@ -61,7 +70,7 @@ export const NeedModal = ({
       onClose();
       resetForm();
     } catch (err) {
-      setError(err?.response?.data?.detail || 'İhtiyaç talebi kaydedilirken bir hata oluştu.');
+      setError(err?.response?.data?.detail || 'Failed to submit request.');
     } finally {
       setSubmitting(false);
     }
@@ -100,10 +109,10 @@ export const NeedModal = ({
                 </div>
                 <div>
                   <h3 className="font-extrabold text-lg text-slate-900">
-                    Okul İhtiyaç Bildirimi
+                    {t('need.modalTitle')}
                   </h3>
                   <p className="text-xs text-slate-500 font-medium">
-                    Eğitim materyali veya donanım talebinizi komşu okullara duyurun.
+                    {t('need.modalSubtitle')}
                   </p>
                 </div>
               </div>
@@ -119,14 +128,14 @@ export const NeedModal = ({
             <form onSubmit={handleSubmit} className="p-6 space-y-4">
               <div>
                 <label className="block text-xs font-bold text-slate-700 uppercase mb-1">
-                  İhtiyaç Başlığı *
+                  {t('need.needTitle')}
                 </label>
                 <input
                   type="text"
                   required
                   value={title}
                   onChange={(e) => setTitle(e.target.value)}
-                  placeholder="Örn: Kodlama Atölyesi İçin 10 Adet Bilgisayar"
+                  placeholder={t('need.needTitlePlaceholder')}
                   className="w-full px-4 py-2.5 rounded-xl border border-slate-300 focus:outline-none focus:ring-2 focus:ring-blue-500 text-sm font-medium"
                 />
               </div>
@@ -134,39 +143,38 @@ export const NeedModal = ({
               <div className="grid grid-cols-2 gap-4">
                 <div>
                   <label className="block text-xs font-bold text-slate-700 uppercase mb-1">
-                    Kategori
+                    {t('need.category')}
                   </label>
                   <select
                     value={itemCategory}
                     onChange={(e) => setItemCategory(e.target.value)}
                     className="w-full px-3 py-2.5 rounded-xl border border-slate-300 bg-white text-sm font-medium focus:ring-2 focus:ring-blue-500"
                   >
-                    {categories.map((c) => (
-                      <option key={c} value={c}>{c}</option>
+                    {categoryOptions.map((c) => (
+                      <option key={c.value} value={c.value}>{c.label}</option>
                     ))}
                   </select>
                 </div>
 
                 <div>
                   <label className="block text-xs font-bold text-slate-700 uppercase mb-1">
-                    Aciliyet Seviyesi
+                    {t('need.urgency')}
                   </label>
                   <select
                     value={urgencyLevel}
                     onChange={(e) => setUrgencyLevel(e.target.value)}
                     className="w-full px-3 py-2.5 rounded-xl border border-slate-300 bg-white text-sm font-medium focus:ring-2 focus:ring-blue-500"
                   >
-                    <option value="CRITICAL">Kritik / Çok Acil</option>
-                    <option value="HIGH">Yüksek Öncelikli</option>
-                    <option value="MEDIUM">Normal Öncelik</option>
-                    <option value="LOW">Düşük Öncelik</option>
+                    {urgencyOptions.map((u) => (
+                      <option key={u.value} value={u.value}>{u.label}</option>
+                    ))}
                   </select>
                 </div>
               </div>
 
               <div>
                 <label className="block text-xs font-bold text-slate-700 uppercase mb-1">
-                  Gereken Miktar (Adet)
+                  {t('need.quantityNeeded')}
                 </label>
                 <input
                   type="number"
@@ -179,13 +187,13 @@ export const NeedModal = ({
 
               <div>
                 <label className="block text-xs font-bold text-slate-700 uppercase mb-1">
-                  Açıklama / Amacı
+                  {t('need.description')}
                 </label>
                 <textarea
                   rows="3"
                   value={rawText}
                   onChange={(e) => setRawText(e.target.value)}
-                  placeholder="İhtiyacın gerekçesi, kullanılacağı sınıf veya laboratuvar..."
+                  placeholder={t('need.descriptionPlaceholder')}
                   className="w-full px-4 py-2 rounded-xl border border-slate-300 focus:ring-2 focus:ring-blue-500 text-sm"
                 />
               </div>
@@ -203,7 +211,7 @@ export const NeedModal = ({
                   onClick={onClose}
                   className="px-4 py-2 rounded-xl border border-slate-300 text-slate-700 text-sm font-semibold hover:bg-slate-50 transition-colors"
                 >
-                  Vazgeç
+                  {t('need.cancel')}
                 </button>
                 <button
                   type="submit"
@@ -211,7 +219,7 @@ export const NeedModal = ({
                   className="flex items-center space-x-2 px-6 py-2.5 rounded-xl bg-blue-600 hover:bg-blue-700 text-white text-sm font-bold shadow-md shadow-blue-600/30 transition-all disabled:opacity-50"
                 >
                   {submitting && <Loader2 className="w-4 h-4 animate-spin" />}
-                  <span>İhtiyaç Talebi Oluştur</span>
+                  <span>{t('need.submit')}</span>
                 </button>
               </div>
 
