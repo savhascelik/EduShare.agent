@@ -52,6 +52,8 @@ export const api = {
   getTasks: (params) => client.get('/agent/tasks', { params }).then((res) => res.data),
   approveTask: (taskId) => client.post(`/agent/approve/${taskId}`).then((res) => res.data),
   rejectTask: (taskId) => client.post(`/agent/reject/${taskId}`).then((res) => res.data),
+  getPulse: () => client.get('/agent/pulse').then((res) => res.data),
+  triggerSweep: () => client.post('/agent/sweep').then((res) => res.data),
 };
 
 export default api;

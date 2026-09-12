@@ -7,6 +7,8 @@ from app.models import School, SurplusItem, NeedRequest, AgentTask, Transfer
 from app.schemas import AgentTaskResponse, HITLApprovalAction, TransferResponse
 from app.auth import get_optional_current_school, get_current_school
 from app.sse import sse_manager
+from app.pulse_logger import get_recent_pulse_events, record_pulse_event
+from app.worker import run_autonomous_inventory_sweep
 
 router = APIRouter(prefix="/api/agent", tags=["Agent & HITL Approvals"])
 
@@ -124,6 +126,19 @@ async def approve_transfer_task(
     }
     await sse_manager.broadcast("TRANSFER_APPROVED", transfer_data)
 
+    record_pulse_event(
+        event_type="success",
+        step_key="transfer_finalized",
+        params={
+            "item": item_title,
+            "from_school": from_school.name if from_school else "",
+            "to_school": to_school.name if to_school else "",
+            "savings_tl": savings_tl,
+            "co2_kg": co2_kg
+        },
+        raw_text=f"Principal approved transfer: {item_title} ({from_school.name if from_school else ''} -> {to_school.name if to_school else ''})."
+    )
+
     return {
         "status": "SUCCESS",
         "message": f"Tebrikler! {from_school.name if from_school else ''} ➔ {to_school.name if to_school else ''} transferi onaylandı.",
@@ -145,3 +160,20 @@ async def reject_transfer_task(
 
     await sse_manager.broadcast("TRANSFER_REJECTED", {"task_id": task.id})
     return {"status": "SUCCESS", "message": "Transfer önerisi reddedildi. Eşya envanterde beklemeye devam ediyor."}
+
+@router.get("/pulse")
+def get_agent_pulse_feed():
+    """Returns recent autonomous agent reasoning steps for live observability."""
+    return get_recent_pulse_events()
+
+@router.post("/sweep")
+async def trigger_autonomous_sweep():
+    """Triggers an on-demand proactive inventory sweep."""
+    record_pulse_event(
+        event_type="info",
+        step_key="sweep_initiated",
+        raw_text="Autonomous inventory sweep triggered."
+    )
+    asyncio.create_task(run_autonomous_inventory_sweep())
+    return {"status": "SUCCESS", "message": "Autonomous inventory sweep initiated."}
+

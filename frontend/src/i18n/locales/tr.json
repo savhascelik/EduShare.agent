@@ -223,5 +223,30 @@
   "footer": {
     "tagline": "EduShare Agent • Agents for Humans Hackathon (Devpost & AWS)",
     "credits": "Track: Good Neighbor Agents • Powered by Strands Agents SDK & Amazon Bedrock (Nova Pro) • Real PostgreSQL Persistence"
+  },
+  "pulse": {
+    "floatingBadge": "Ajan Nabzı",
+    "activeState": "Otonom Döngü Aktif",
+    "modalTitle": "Otonom Ajan Canlı Nabzı",
+    "modalSubtitle": "Amazon Bedrock Nova Pro gerçek zamanlı akıl yürütme ve araç hareketleri",
+    "engineStatus": "Otonom Motor",
+    "running": "Çalışıyor (Arka Plan Servisi)",
+    "model": "Model: Nova Pro",
+    "latency": "Gecikme: ~1.2s",
+    "activeDecisions": "Bekleyen Kararlar",
+    "sweepNow": "Otonom Taramayı Başlat",
+    "sweeping": "Taranıyor...",
+    "liveFeed": "Canlı Akıl Yürütme Akışı",
+    "clearLogs": "Temizle",
+    "noLogs": "Henüz ajan hareketi kaydedilmedi.",
+    "steps": {
+      "agent_awakened": "EduShare Strands Ajanı {{region}} bölgesinde Amazon Bedrock Nova Pro ile başlatıldı.",
+      "tool_query_needs": "Araç: query_nearby_needs({{category}}) — Çevredeki açık ihtiyaç sahibi okullar sorgulandı.",
+      "tool_calc_impact": "Araç: calculate_impact_metrics — ₺{{savings}} kamu tasarrufu ve {{co2}} kg önlenen CO2 hesaplandı.",
+      "tool_hitl_created": "Otonom Karar: {{item}} için İnsan Onay (HITL) kartı üretildi ({{from_school}} ➔ {{to_school}}).",
+      "transfer_finalized": "Transfer Onaylandı: Okul müdürü {{item}} sevkiyatını onayladı. Lojistik protokol oluşturuldu.",
+      "sweep_initiated": "Proaktif Tarama: Eşleşmemiş tüm fazla okul eşyaları ile açık ihtiyaçlar taranıyor.",
+      "agent_idle": "Arka plan servisi dinlemede. Yeni envanter, ihtiyaç ve GPS hareketleri izleniyor."
+    }
   }
 }

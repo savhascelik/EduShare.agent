@@ -221,5 +221,30 @@
   "footer": {
     "tagline": "EduShare Agent • Agents for Humans Hackathon (Devpost & AWS)",
     "credits": "Track: Good Neighbor Agents • Powered by Strands Agents SDK & Amazon Bedrock (Nova Pro) • Real PostgreSQL Persistence"
+  },
+  "pulse": {
+    "floatingBadge": "Pouls de l'agent",
+    "activeState": "Boucle autonome active",
+    "modalTitle": "Pouls en direct de l'agent autonome",
+    "modalSubtitle": "Traces de raisonnement et appels d'outils Amazon Bedrock Nova Pro",
+    "engineStatus": "Moteur autonome",
+    "running": "En cours (Démon en arrière-plan)",
+    "model": "Modèle: Nova Pro",
+    "latency": "Latence: ~1.2s",
+    "activeDecisions": "Décisions en attente",
+    "sweepNow": "Déclencher le balayage",
+    "sweeping": "Balayage...",
+    "liveFeed": "Flux de raisonnement en direct",
+    "clearLogs": "Effacer",
+    "noLogs": "Aucun événement d'agent enregistré.",
+    "steps": {
+      "agent_awakened": "Agent EduShare Strands initialisé avec Amazon Bedrock Nova Pro ({{region}}).",
+      "tool_query_needs": "Outil: query_nearby_needs({{category}}) — Établissements candidats identifiés.",
+      "tool_calc_impact": "Outil: calculate_impact_metrics — ₺{{savings}} d'économies & {{co2}} kg de CO2 évité calculés.",
+      "tool_hitl_created": "Décision autonome: Carte d'approbation HITL générée pour {{item}} ({{from_school}} ➔ {{to_school}}).",
+      "transfer_finalized": "Transfert finalisé: Le directeur a approuvé {{item}}. Protocole logistique généré.",
+      "sweep_initiated": "Balayage proactif: Analyse des surplus non assignés par rapport aux besoins ouverts.",
+      "agent_idle": "Démon en attente. À l'écoute des nouveaux signaux d'inventaire et de besoins."
+    }
   }
 }

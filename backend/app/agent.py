@@ -6,6 +6,7 @@ from strands.models import BedrockModel
 from app.config import settings
 from app.database import SessionLocal
 from app.models import School, SurplusItem, NeedRequest, AgentTask, Transfer
+from app.pulse_logger import record_pulse_event
 
 def haversine_distance_km(lat1: float, lon1: float, lat2: float, lon2: float) -> float:
     """Calculates great-circle distance between two GPS coordinates in kilometers."""
@@ -84,6 +85,14 @@ def query_nearby_needs(category: str, source_lat: float, source_lng: float, max_
         
         # Sort by category match priority, then distance
         candidates.sort(key=lambda x: (not x["category_matched"], x["distance_km"]))
+        
+        record_pulse_event(
+            event_type="tool_call",
+            step_key="tool_query_needs",
+            tool="query_nearby_needs",
+            params={"category": category, "matched_candidates": len(candidates)},
+            raw_text=f"Queried needs for {category}. Identified {len(candidates)} nearby candidate schools."
+        )
         return json.dumps(candidates[:5], ensure_ascii=False)
     finally:
         db.close()
@@ -118,6 +127,14 @@ def calculate_impact_metrics(quantity: int, unit_value_tl: float, distance_km: f
     logistics_co2 = distance_km * 0.12 # kg CO2 for local transport
     net_prevented_co2 = max(2.5, round(gross_co2 - logistics_co2, 2))
     
+    record_pulse_event(
+        event_type="tool_call",
+        step_key="tool_calc_impact",
+        tool="calculate_impact_metrics",
+        params={"savings_tl": total_savings_tl, "co2_kg": net_prevented_co2, "distance_km": distance_km},
+        raw_text=f"Impact calculated: ₺{total_savings_tl:,.0f} public savings and {net_prevented_co2} kg CO2 prevented."
+    )
+    
     return json.dumps({
         "savings_tl": total_savings_tl,
         "prevented_co2_kg": net_prevented_co2,
@@ -146,7 +163,7 @@ def create_hitl_approval_card(
         item = db.query(SurplusItem).filter(SurplusItem.id == surplus_item_id).first()
         
         card_payload = {
-            "title": f"🤖 EduShare Lojistik Önerisi: {item.title if item else 'Eğitim Malzemesi'}",
+            "title": f"EduShare Lojistik Önerisi: {item.title if item else 'Eğitim Malzemesi'}",
             "from_school_id": from_school_id,
             "from_school_name": from_school.name if from_school else "Kaynak Okul",
             "from_district": from_school.district if from_school else "",
@@ -172,6 +189,21 @@ def create_hitl_approval_card(
             task.status = "AWAITING_HUMAN_APPROVAL"
             task.match_payload = card_payload
             db.commit()
+            
+        record_pulse_event(
+            event_type="decision",
+            step_key="tool_hitl_created",
+            tool="create_hitl_approval_card",
+            params={
+                "item": item.title if item else "Eşya",
+                "from_school": from_school.name if from_school else "",
+                "to_school": to_school.name if to_school else "",
+                "distance_km": distance_km,
+                "savings_tl": savings_tl,
+                "co2_kg": co2_kg
+            },
+            raw_text=f"HITL proposal formulated: {item.title if item else 'Eşya'} -> {to_school.name if to_school else ''}."
+        )
             
         return json.dumps({
             "status": "SUCCESS",

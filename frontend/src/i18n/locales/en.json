@@ -223,5 +223,30 @@
   "footer": {
     "tagline": "EduShare Agent • Agents for Humans Hackathon (Devpost & AWS)",
     "credits": "Track: Good Neighbor Agents • Powered by Strands Agents SDK & Amazon Bedrock (Nova Pro) • Real PostgreSQL Persistence"
+  },
+  "pulse": {
+    "floatingBadge": "Agent Pulse",
+    "activeState": "Autonomous Loop Active",
+    "modalTitle": "Autonomous Agent Live Pulse",
+    "modalSubtitle": "Real-time Amazon Bedrock Nova Pro reasoning trace & tool invocations",
+    "engineStatus": "Autonomous Engine",
+    "running": "Running (Background Daemon)",
+    "model": "Model: Nova Pro",
+    "latency": "Latency: ~1.2s",
+    "activeDecisions": "Pending Decisions",
+    "sweepNow": "Trigger Autonomous Sweep",
+    "sweeping": "Sweeping...",
+    "liveFeed": "Live Reasoning Stream",
+    "clearLogs": "Clear",
+    "noLogs": "No agent events recorded yet.",
+    "steps": {
+      "agent_awakened": "EduShare Strands Agent initialized with Amazon Bedrock Nova Pro ({{region}}).",
+      "tool_query_needs": "Tool: query_nearby_needs({{category}}) — Identified candidate institutions.",
+      "tool_calc_impact": "Tool: calculate_impact_metrics — ₺{{savings}} public savings & {{co2}} kg CO2 reduction computed.",
+      "tool_hitl_created": "Autonomous Decision: Formulated HITL approval card for {{item}} ({{from_school}} ➔ {{to_school}}).",
+      "transfer_finalized": "Transfer Finalized: Principal approved {{item}} dispatch. Logistics protocol generated.",
+      "sweep_initiated": "Proactive Sweep: Scanning unassigned surplus inventory against open school needs.",
+      "agent_idle": "Background daemon idle. Listening for new inventory, need, and GPS events."
+    }
   }
 }

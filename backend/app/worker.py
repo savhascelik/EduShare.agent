@@ -53,8 +53,8 @@ async def process_single_task(task_id: str):
             )
             
             logger.info(f"Invoking Strands Agent for task {task.id}...")
-            agent_response = await asyncio.to_thread(agent, prompt)
-            logger.info(f"Strands Agent completed for task {task.id}: {str(agent_response)[:150]}")
+            agent_response = await agent.invoke_async(prompt)
+            logger.info(f"Strands Agent completed for task {task.id}")
             
             # Refresh task to see if tool updated it
             db.refresh(task)
@@ -89,7 +89,7 @@ async def process_single_task(task_id: str):
                     )
                     db.add(new_task)
                     db.commit()
-                    asyncio.create_task(process_single_task(new_task.id))
+                    await process_single_task(new_task.id)
                     break
             task.status = "COMPLETED"
             db.commit()
@@ -106,9 +106,63 @@ async def process_single_task(task_id: str):
     finally:
         db.close()
 
+async def run_autonomous_inventory_sweep():
+    """
+    Autonomous Proactive Sweeper:
+    Periodically checks if any unassigned surplus items can fulfill open needs,
+    ensuring continuous autonomous background matching without human prompting.
+    """
+    db: Session = SessionLocal()
+    try:
+        active_task_source_ids = {
+            t.source_id for t in db.query(AgentTask).filter(
+                AgentTask.status.in_(["PENDING", "PROCESSING", "AWAITING_HUMAN_APPROVAL"])
+            ).all()
+        }
+        
+        available_surplus = db.query(SurplusItem).filter(
+            SurplusItem.status == "AVAILABLE"
+        ).all()
+        
+        open_needs = db.query(NeedRequest).filter(
+            NeedRequest.status == "OPEN"
+        ).all()
+        
+        if not open_needs or not available_surplus:
+            return
+            
+        for surplus in available_surplus:
+            if surplus.id in active_task_source_ids:
+                continue
+                
+            has_matching_need = any(
+                surplus.item_category.lower() in n.item_category.lower() or
+                n.item_category.lower() in surplus.item_category.lower() or
+                surplus.item_category == "Genel Donanım"
+                for n in open_needs
+                if n.school_id != surplus.school_id
+            )
+            
+            if has_matching_need:
+                logger.info(f"Autonomous Sweeper: Discovered unassigned surplus {surplus.id} with matching open needs. Enqueuing agent task...")
+                new_task = AgentTask(
+                    task_type="MATCH_SURPLUS",
+                    source_id=surplus.id,
+                    status="PENDING"
+                )
+                db.add(new_task)
+                db.commit()
+                await process_single_task(new_task.id)
+                break
+    except Exception as e:
+        logger.error(f"Error in autonomous inventory sweep: {e}", exc_info=True)
+    finally:
+        db.close()
+
 async def start_background_queue_loop():
-    """Runs a continuous self-waking loop to consume pending tasks."""
+    """Runs a continuous self-waking loop to consume pending tasks and sweep for autonomous matches."""
     logger.info("EduShare Autonomous Background Queue Loop started.")
+    iteration = 0
     while True:
         try:
             db = SessionLocal()
@@ -118,6 +172,12 @@ async def start_background_queue_loop():
             
             for tid in task_ids:
                 await process_single_task(tid)
+
+            # Proactive inventory sweep every 30 seconds
+            iteration += 1
+            if iteration % 6 == 0:
+                await run_autonomous_inventory_sweep()
+
         except Exception as e:
             logger.error(f"Queue loop iteration error: {e}")
         

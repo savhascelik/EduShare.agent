@@ -14,6 +14,7 @@ import { AuthModal } from './components/AuthModal';
 import { ProfileModal } from './components/ProfileModal';
 import { RecentActivityFeed } from './components/RecentActivityFeed';
 import { MobileBottomNav } from './components/MobileBottomNav';
+import { LiveReasoningPulse } from './components/LiveReasoningPulse';
 
 function MainApp() {
   const { t } = useTranslation();
@@ -221,6 +222,9 @@ function MainApp() {
         onClose={() => setIsProfileOpen(false)}
         onProfileUpdated={() => loadDashboardData()}
       />
+
+      {/* Autonomous Agent Live Reasoning Pulse Widget */}
+      <LiveReasoningPulse pendingCount={pendingApprovalsCount} />
 
     </div>
   );
