@@ -236,10 +236,15 @@
     "sweeping": "Scannt...",
     "liveFeed": "Echtzeit-Denkprotokoll",
     "clearLogs": "Leeren",
-    "noLogs": "Noch keine Agenten-Ereignisse erfasst.",
+    "tabs": {
+      "allNetwork": "Gesamtes Netzwerk",
+      "mySchool": "Meine Schule"
+    },
+    "noSchoolLogs": "Noch keine autonomen Aktionen für Ihre Schule erfasst.",
     "steps": {
       "agent_awakened": "EduShare Strands Agent mit Amazon Bedrock Nova Pro ({{region}}) initialisiert.",
       "tool_query_needs": "Tool: query_nearby_needs({{category}}) — Partnerschulen ermittelt.",
+      "tool_query_surplus": "Tool: query_nearby_surplus({{category}}) — Überschuss-Inventar ermittelt.",
       "tool_calc_impact": "Tool: calculate_impact_metrics — ₺{{savings}} Einsparungen & {{co2}} kg CO2-Reduktion berechnet.",
       "tool_hitl_created": "Autonome Entscheidung: HITL-Freigabekarte für {{item}} erstellt ({{from_school}} ➔ {{to_school}}).",
       "transfer_finalized": "Transfer genehmigt: Schulleitung hat {{item}} freigegeben. Logistikprotokoll erstellt.",

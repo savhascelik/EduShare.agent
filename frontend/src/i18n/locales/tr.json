@@ -238,10 +238,15 @@
     "sweeping": "Taranıyor...",
     "liveFeed": "Canlı Akıl Yürütme Akışı",
     "clearLogs": "Temizle",
-    "noLogs": "Henüz ajan hareketi kaydedilmedi.",
+    "tabs": {
+      "allNetwork": "Tüm Ağ",
+      "mySchool": "Okulum"
+    },
+    "noSchoolLogs": "Okulunuzla ilgili henüz bir otonom işlem kaydedilmedi.",
     "steps": {
       "agent_awakened": "EduShare Strands Ajanı {{region}} bölgesinde Amazon Bedrock Nova Pro ile başlatıldı.",
       "tool_query_needs": "Araç: query_nearby_needs({{category}}) — Çevredeki açık ihtiyaç sahibi okullar sorgulandı.",
+      "tool_query_surplus": "Araç: query_nearby_surplus({{category}}) — Çevredeki uygun fazla okul envanteri sorgulandı.",
       "tool_calc_impact": "Araç: calculate_impact_metrics — ₺{{savings}} kamu tasarrufu ve {{co2}} kg önlenen CO2 hesaplandı.",
       "tool_hitl_created": "Otonom Karar: {{item}} için İnsan Onay (HITL) kartı üretildi ({{from_school}} ➔ {{to_school}}).",
       "transfer_finalized": "Transfer Onaylandı: Okul müdürü {{item}} sevkiyatını onayladı. Lojistik protokol oluşturuldu.",

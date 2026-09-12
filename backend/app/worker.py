@@ -76,23 +76,34 @@ async def process_single_task(task_id: str):
                 db.commit()
                 return
 
-            # Check if there is an available surplus item matching this need
-            surplus_items = db.query(SurplusItem).filter(SurplusItem.status == "AVAILABLE").all()
-            for s_item in surplus_items:
-                if (need.item_category.lower() in s_item.item_category.lower() or 
-                    s_item.item_category.lower() in need.item_category.lower()):
-                    # Create matching task for surplus
-                    new_task = AgentTask(
-                        task_type="MATCH_SURPLUS",
-                        source_id=s_item.id,
-                        status="PENDING"
-                    )
-                    db.add(new_task)
-                    db.commit()
-                    await process_single_task(new_task.id)
-                    break
-            task.status = "COMPLETED"
-            db.commit()
+            prompt = (
+                f"Yeni bir okul acil ihtiyaç bildirdi.\n"
+                f"- Task ID: {task.id}\n"
+                f"- İhtiyaç ID: {need.id}\n"
+                f"- İhtiyaç Başlığı: {need.title}\n"
+                f"- Açıklama: {need.raw_text}\n"
+                f"- Kategori: {need.item_category}\n"
+                f"- Gereken Adet: {need.quantity_needed}\n"
+                f"- Aciliyet Seviyesi: {need.urgency_level}\n"
+                f"- Hedef Okul ID: {target_school.id}\n"
+                f"- Hedef Okul Adı: {target_school.name} ({target_school.district})\n"
+                f"- Hedef Koordinatlar: Lat {target_school.latitude}, Lng {target_school.longitude}\n\n"
+                "Lütfen sırasıyla:\n"
+                "1. query_nearby_surplus aracını kullanarak bu ihtiyacı karşılayabilecek en yakın ve uygun okul fazla envanterini sorgula.\n"
+                "2. Bulunan eşya için calculate_impact_metrics aracını çağırarak TL tasarrufu ve CO2 etkisini hesapla.\n"
+                "3. Son olarak create_hitl_approval_card aracını çağırarak okul müdürünün onayına sunulacak HITL kartını oluştur."
+            )
+            
+            logger.info(f"Invoking Strands Agent for NEED task {task.id}...")
+            agent_response = await agent.invoke_async(prompt)
+            logger.info(f"Strands Agent completed for NEED task {task.id}")
+            
+            db.refresh(task)
+            if task.status == "AWAITING_HUMAN_APPROVAL" and task.match_payload:
+                await sse_manager.broadcast("NEW_HITL_TASK", {
+                    "task_id": task.id,
+                    "card": task.match_payload
+                })
 
     except Exception as e:
         logger.error(f"Error processing task {task_id}: {e}", exc_info=True)

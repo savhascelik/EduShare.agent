@@ -98,6 +98,56 @@ def query_nearby_needs(category: str, source_lat: float, source_lng: float, max_
         db.close()
 
 @tool
+def query_nearby_surplus(category: str, target_lat: float, target_lng: float, max_km: float = 35.0) -> str:
+    """Queries database for available surplus school inventory near target coordinates and filters by distance and category."""
+    db = SessionLocal()
+    try:
+        surplus_items = db.query(SurplusItem).filter(SurplusItem.status == "AVAILABLE").all()
+        candidates = []
+        for item in surplus_items:
+            school = db.query(School).filter(School.id == item.school_id).first()
+            if not school:
+                continue
+            dist = haversine_distance_km(target_lat, target_lng, school.latitude, school.longitude)
+            if dist <= max_km:
+                cat_match = (
+                    category.lower() in item.item_category.lower() or 
+                    item.item_category.lower() in category.lower() or
+                    category == "Genel Donanım" or
+                    item.item_category == "Genel Donanım" or
+                    ("mikroskop" in category.lower() and "fen" in item.item_category.lower()) or
+                    ("fen" in category.lower() and "mikroskop" in item.title.lower())
+                )
+                candidates.append({
+                    "surplus_item_id": item.id,
+                    "item_title": item.title,
+                    "source_school_id": school.id,
+                    "source_school_name": school.name,
+                    "source_district": school.district,
+                    "source_lat": school.latitude,
+                    "source_lng": school.longitude,
+                    "item_category": item.item_category,
+                    "quantity_available": item.quantity,
+                    "condition_rating": item.condition_rating,
+                    "unit_value_tl": item.estimated_unit_value_tl,
+                    "distance_km": dist,
+                    "category_matched": cat_match
+                })
+        
+        candidates.sort(key=lambda x: (not x["category_matched"], x["distance_km"]))
+        
+        record_pulse_event(
+            event_type="tool_call",
+            step_key="tool_query_surplus",
+            tool="query_nearby_surplus",
+            params={"category": category, "matched_candidates": len(candidates)},
+            raw_text=f"Queried available surplus for {category}. Identified {len(candidates)} nearby source schools."
+        )
+        return json.dumps(candidates[:5], ensure_ascii=False)
+    finally:
+        db.close()
+
+@tool
 def calculate_impact_metrics(quantity: int, unit_value_tl: float, distance_km: float, category: str) -> str:
     """Calculates financial savings in TL and prevented CO2 footprint in kg."""
     carbon_factors = {
@@ -225,14 +275,15 @@ def get_edushare_agent() -> Agent:
         "israf edilmeyip en yakın ve en çok ihtiyacı olan okula aktarılmasını sağlayan otonom komşuluk ve lojistik ajanısın.\n\n"
         "GÖREVİN:\n"
         "1. Bir okul fazla eşya girdiğinde, önce query_nearby_needs ile yakın mesafedeki açık ihtiyaçları tespit et.\n"
-        "2. En uygun eşleşme için calculate_impact_metrics ile tasarruf ve CO2 etkisini hesapla.\n"
-        "3. Kesinlikle kendi başına transferi tamamlama! Daima create_hitl_approval_card aracını çağırarak "
+        "2. Bir okul ihtiyaç girdiğinde ise, query_nearby_surplus ile çevre okullardaki uygun fazla envanteri sorgula.\n"
+        "3. En uygun eşleşme için calculate_impact_metrics ile tasarruf ve CO2 etkisini hesapla.\n"
+        "4. Kesinlikle kendi başına transferi tamamlama! Daima create_hitl_approval_card aracını çağırarak "
         "okul müdürünün onayına sunulacak Human-in-the-Loop kartını hazırla.\n"
-        "4. Her zaman Türkçe, saygılı, net ve kamu yararını gözeten bir üslupla çalış."
+        "5. Her zaman Türkçe, saygılı, net ve kamu yararını gözeten bir üslupla çalış."
     )
     
     return Agent(
         model=bedrock_model,
-        tools=[search_tools, query_nearby_needs, calculate_impact_metrics, create_hitl_approval_card],
+        tools=[search_tools, query_nearby_needs, query_nearby_surplus, calculate_impact_metrics, create_hitl_approval_card],
         system_prompt=system_prompt
     )

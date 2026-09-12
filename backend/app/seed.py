@@ -158,11 +158,23 @@ def seed_database():
             raw_text="Kütüphane bağışından elimizde çift olan temiz dünya klasikleri ve popüler bilim kitapları.",
             item_category="Kütüphane & Kitap",
             quantity=60,
-            condition_rating="İyi",
+            condition_rating="Yeni",
             estimated_unit_value_tl=150.0,
             status="AVAILABLE"
         )
-        db.add_all([surplus1, surplus2, surplus3, surplus4])
+        surplus5 = SurplusItem(
+            id="surplus_kadikoy_mikroskop",
+            school_id="sch_kadikoy_al",
+            title="5 Adet Optik Biyoloji ve Laboratuvar Mikroskobu",
+            raw_text="Laboratuvar yenilemesi sonrası kullanılabilir durumda olan 5 adet optik ışık mikroskobu ve lam seti.",
+            item_category="Fen & Laboratuvar",
+            quantity=5,
+            condition_rating="Çok İyi",
+            estimated_unit_value_tl=6500.0,
+            status="AVAILABLE"
+        )
+
+        db.add_all([surplus1, surplus2, surplus3, surplus4, surplus5])
 
         # Seed Needs
         need1 = NeedRequest(

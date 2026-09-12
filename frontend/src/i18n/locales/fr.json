@@ -236,10 +236,15 @@
     "sweeping": "Balayage...",
     "liveFeed": "Flux de raisonnement en direct",
     "clearLogs": "Effacer",
-    "noLogs": "Aucun événement d'agent enregistré.",
+    "tabs": {
+      "allNetwork": "Tout le réseau",
+      "mySchool": "Mon école"
+    },
+    "noSchoolLogs": "Aucune activité autonome enregistrée pour votre école pour le moment.",
     "steps": {
       "agent_awakened": "Agent EduShare Strands initialisé avec Amazon Bedrock Nova Pro ({{region}}).",
       "tool_query_needs": "Outil: query_nearby_needs({{category}}) — Établissements candidats identifiés.",
+      "tool_query_surplus": "Outil: query_nearby_surplus({{category}}) — Inventaire des surplus identifié.",
       "tool_calc_impact": "Outil: calculate_impact_metrics — ₺{{savings}} d'économies & {{co2}} kg de CO2 évité calculés.",
       "tool_hitl_created": "Décision autonome: Carte d'approbation HITL générée pour {{item}} ({{from_school}} ➔ {{to_school}}).",
       "transfer_finalized": "Transfert finalisé: Le directeur a approuvé {{item}}. Protocole logistique généré.",

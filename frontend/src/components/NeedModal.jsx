@@ -40,6 +40,22 @@ export const NeedModal = ({
     { value: 'LOW', label: t('need.urgencies.low') }
   ];
 
+  const handleTitleChange = (val) => {
+    setTitle(val);
+    const lower = val.toLowerCase();
+    if (lower.includes('mikroskop') || lower.includes('laboratuvar') || lower.includes('deney') || lower.includes('biyoloji') || lower.includes('kimya') || lower.includes('fizik') || lower.includes('stem')) {
+      setItemCategory('Fen & Laboratuvar');
+    } else if (lower.includes('sıra') || lower.includes('masa') || lower.includes('sandalye') || lower.includes('dolap') || lower.includes('tahta')) {
+      setItemCategory('Mobilya & Sıra');
+    } else if (lower.includes('kitap') || lower.includes('roman') || lower.includes('kütüphane') || lower.includes('ansiklopedi')) {
+      setItemCategory('Kütüphane & Kitap');
+    } else if (lower.includes('bilgisayar') || lower.includes('pc') || lower.includes('laptop') || lower.includes('monitör') || lower.includes('tablet') || lower.includes('yazıcı')) {
+      setItemCategory('Bilişim & Bilgisayar');
+    } else if (lower.includes('top') || lower.includes('file') || lower.includes('spor') || lower.includes('forma') || lower.includes('raket')) {
+      setItemCategory('Spor & Beden Eğitimi');
+    }
+  };
+
   const handleSubmit = async (e) => {
     e.preventDefault();
     if (!isAuthenticated) {
@@ -134,7 +150,7 @@ export const NeedModal = ({
                   type="text"
                   required
                   value={title}
-                  onChange={(e) => setTitle(e.target.value)}
+                  onChange={(e) => handleTitleChange(e.target.value)}
                   placeholder={t('need.needTitlePlaceholder')}
                   className="w-full px-4 py-2.5 rounded-xl border border-slate-300 focus:outline-none focus:ring-2 focus:ring-blue-500 text-sm font-medium"
                 />

@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useMemo } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { 
   Activity, 
@@ -20,12 +20,15 @@ import {
 import { useTranslation } from 'react-i18next';
 import { api } from '../services/api';
 import { useStream } from '../context/StreamContext';
+import { useAuth } from '../context/AuthContext';
 
 export const LiveReasoningPulse = ({ pendingCount = 0 }) => {
   const { t, i18n } = useTranslation();
   const { subscribe } = useStream();
+  const { currentSchool, isAuthenticated } = useAuth();
   const [isOpen, setIsOpen] = useState(false);
   const [logs, setLogs] = useState([]);
+  const [pulseFilter, setPulseFilter] = useState('all'); // 'all' | 'school'
   const [isSweeping, setIsSweeping] = useState(false);
   const [lastPing, setLastPing] = useState(new Date());
 
@@ -72,6 +75,28 @@ export const LiveReasoningPulse = ({ pendingCount = 0 }) => {
       setIsSweeping(false);
     }
   };
+
+  const filteredLogs = useMemo(() => {
+    if (pulseFilter === 'all' || !currentSchool) return logs;
+    const sName = (currentSchool.name || '').toLowerCase();
+    const sDistrict = (currentSchool.district || '').toLowerCase();
+    const sId = currentSchool.id;
+
+    return logs.filter((log) => {
+      const p = log.params || {};
+      const fromName = (p.from_school || p.from_school_name || '').toLowerCase();
+      const toName = (p.to_school || p.to_school_name || '').toLowerCase();
+      const rawLower = (log.raw_text || '').toLowerCase();
+
+      return (
+        p.from_school_id === sId ||
+        p.to_school_id === sId ||
+        p.school_id === sId ||
+        (sName && (fromName.includes(sName) || toName.includes(sName) || rawLower.includes(sName))) ||
+        (sDistrict && (rawLower.includes(sDistrict) || fromName.includes(sDistrict) || toName.includes(sDistrict)))
+      );
+    });
+  }, [logs, pulseFilter, currentSchool]);
 
   const renderStepMessage = (log) => {
     const key = log.step_key;
@@ -187,8 +212,44 @@ export const LiveReasoningPulse = ({ pendingCount = 0 }) => {
               </button>
             </div>
 
+            {/* Filter Tabs: [🌐 Tüm Ağ | 🏫 Okulum] */}
+            {isAuthenticated && currentSchool && (
+              <div className="px-3 py-2 bg-slate-100/90 border-b border-slate-200/80 flex items-center space-x-1.5">
+                <button
+                  type="button"
+                  onClick={() => setPulseFilter('all')}
+                  className={`flex-1 py-1.5 px-2.5 rounded-xl text-[11px] font-bold transition-all flex items-center justify-center space-x-1.5 ${
+                    pulseFilter === 'all'
+                      ? 'bg-white text-slate-900 shadow-xs border border-slate-200'
+                      : 'text-slate-500 hover:text-slate-800'
+                  }`}
+                >
+                  <span>🌐</span>
+                  <span>{t('pulse.tabs.allNetwork')}</span>
+                  <span className="text-[10px] font-semibold px-1.5 py-0.2 rounded-full bg-slate-100 text-slate-600">
+                    {logs.length}
+                  </span>
+                </button>
+                <button
+                  type="button"
+                  onClick={() => setPulseFilter('school')}
+                  className={`flex-1 py-1.5 px-2.5 rounded-xl text-[11px] font-bold transition-all flex items-center justify-center space-x-1.5 ${
+                    pulseFilter === 'school'
+                      ? 'bg-white text-emerald-800 shadow-xs border border-emerald-300'
+                      : 'text-slate-500 hover:text-slate-800'
+                  }`}
+                >
+                  <span>🏫</span>
+                  <span className="truncate max-w-[120px]">{t('pulse.tabs.mySchool')}</span>
+                  <span className="text-[10px] font-semibold px-1.5 py-0.2 rounded-full bg-emerald-100 text-emerald-800">
+                    {filteredLogs.length}
+                  </span>
+                </button>
+              </div>
+            )}
+
             {/* Architecture Metrics Strip */}
-            <div className="px-4 py-2.5 bg-slate-50/80 border-b border-slate-100 flex items-center justify-between text-[11px] font-medium text-slate-600">
+            <div className="px-4 py-2 bg-slate-50/80 border-b border-slate-100 flex items-center justify-between text-[11px] font-medium text-slate-600">
               <div className="flex items-center space-x-2">
                 <span className="text-slate-400">{t('pulse.model')}</span>
                 <span className="text-slate-300">•</span>
@@ -206,12 +267,12 @@ export const LiveReasoningPulse = ({ pendingCount = 0 }) => {
 
             {/* Live Feed List */}
             <div className="flex-1 overflow-y-auto p-3.5 space-y-2.5 max-h-[44vh]">
-              {logs.length === 0 ? (
+              {filteredLogs.length === 0 ? (
                 <div className="text-center py-8 text-xs text-slate-400">
-                  {t('pulse.noLogs')}
+                  {pulseFilter === 'school' ? t('pulse.noSchoolLogs') : t('pulse.noLogs')}
                 </div>
               ) : (
-                logs.map((log) => (
+                filteredLogs.map((log) => (
                   <motion.div
                     key={log.id}
                     initial={{ opacity: 0, x: -6 }}
