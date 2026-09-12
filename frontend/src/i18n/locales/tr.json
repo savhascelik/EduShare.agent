@@ -37,13 +37,40 @@
       "openNeed": "Açık İhtiyaç Bildiren Okul",
       "transferRoute": "Aktif Transfer Hattı"
     },
+    "filter": {
+      "panelTitle": "Harita Filtreleri & Keşif",
+      "searchLabel": "Hızlı Arama",
+      "searchPlaceholder": "Okul, ilçe veya ürün ara...",
+      "showingResults": "{{schools}} okul • {{items}} ürün listeleniyor",
+      "typeTitle": "Katman Seçimi",
+      "typeAll": "Tümü",
+      "typeSurplus": "Fazla Eşyalar",
+      "typeNeed": "Açık İhtiyaçlar",
+      "typeTransfers": "Transfer Hatları",
+      "categoryTitle": "Ekipman Kategorisi",
+      "categoryAll": "Tüm Kategoriler",
+      "baseMapTitle": "Harita Teması",
+      "baseClean": "Sade Minimal (Esri)",
+      "baseWarm": "Sıcak İnsani (HOT)",
+      "baseOsm": "OpenStreetMap",
+      "reset": "Filtreleri Temizle",
+      "collapse": "Paneli Gizle",
+      "expand": "Filtreler",
+      "noResults": "Eşleşen okul veya ürün bulunamadı"
+    },
     "popup": {
       "transferBadge": "Onaylanmış EduShare Transferi",
       "students": "ÖĞRENCİ",
       "teachers": "ÖĞRETMEN",
       "classrooms": "DERSLİK",
       "savings": "Tasarruf",
-      "co2": "CO2"
+      "co2": "CO2",
+      "availableSurplus": "Mevcut Fazla Eşyalar",
+      "openNeeds": "Açık İhtiyaç Talepleri",
+      "noSurplus": "Kayıtlı fazla eşya yok",
+      "noNeeds": "Kayıtlı ihtiyaç talebi yok",
+      "offerSurplus": "Eşya Paylaş",
+      "requestNeed": "İhtiyaç Bildir"
     }
   },
   "hitl": {

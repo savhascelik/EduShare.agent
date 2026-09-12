@@ -37,13 +37,40 @@
       "openNeed": "School with Open Request",
       "transferRoute": "Active Transfer Corridor"
     },
+    "filter": {
+      "panelTitle": "Map Filters & Explorer",
+      "searchLabel": "Quick Search",
+      "searchPlaceholder": "Search school, district, item...",
+      "showingResults": "Showing {{schools}} schools • {{items}} items",
+      "typeTitle": "Show Layer",
+      "typeAll": "All",
+      "typeSurplus": "Surplus Items",
+      "typeNeed": "Open Needs",
+      "typeTransfers": "Transfer Arcs",
+      "categoryTitle": "Equipment Category",
+      "categoryAll": "All Categories",
+      "baseMapTitle": "Map Theme",
+      "baseClean": "Clean Minimal (Esri)",
+      "baseWarm": "Warm Humanitarian",
+      "baseOsm": "OpenStreetMap",
+      "reset": "Reset Filters",
+      "collapse": "Hide Panel",
+      "expand": "Filters",
+      "noResults": "No matching schools or items"
+    },
     "popup": {
       "transferBadge": "Verified EduShare Transfer",
       "students": "STUDENTS",
       "teachers": "TEACHERS",
       "classrooms": "CLASSROOMS",
       "savings": "Savings",
-      "co2": "CO2"
+      "co2": "CO2",
+      "availableSurplus": "Available Surplus",
+      "openNeeds": "Open Needs",
+      "noSurplus": "No active surplus listed",
+      "noNeeds": "No active needs requested",
+      "offerSurplus": "Offer Item",
+      "requestNeed": "Request Need"
     }
   },
   "hitl": {

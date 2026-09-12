@@ -16,3 +16,5 @@ backend/.env
 Thumbs.db
 .vscode/
 .idea/
+*.db
+*.sqlite3

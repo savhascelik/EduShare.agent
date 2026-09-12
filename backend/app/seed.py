@@ -117,6 +117,53 @@ def seed_database():
             db.add(s)
         db.commit()
 
+        # Seed Available Surplus Items
+        surplus1 = SurplusItem(
+            id="surplus_kadikoy_pc",
+            school_id="sch_kadikoy_al",
+            title="12 Adet HP ProDesk i5 Masaüstü Bilgisayar",
+            raw_text="Laboratuvar yenilemesi nedeniyle boşa çıkan, tüm parçaları test edilmiş 12 adet HP masaüstü bilgisayar.",
+            item_category="Bilişim & Bilgisayar",
+            quantity=12,
+            condition_rating="İyi",
+            estimated_unit_value_tl=7500.0,
+            status="AVAILABLE"
+        )
+        surplus2 = SurplusItem(
+            id="surplus_kabatas_sira",
+            school_id="sch_kabatas_el",
+            title="25 Adet Ahşap Öğrenci Çalışma Masası",
+            raw_text="Depomuzda bulunan, sağlam ve cilalı tek kişilik ergonomik öğrenci çalışma masaları.",
+            item_category="Mobilya & Sıra",
+            quantity=25,
+            condition_rating="Yeni",
+            estimated_unit_value_tl=1800.0,
+            status="AVAILABLE"
+        )
+        surplus3 = SurplusItem(
+            id="surplus_besiktas_stem",
+            school_id="sch_besiktas_al",
+            title="8 Adet Dijital STEM Robotik Kodlama Kiti",
+            raw_text="Öğrenci kulübü için ayrılmış fakat kullanılmayan sensör ve mikrokontrolörlü STEM eğitim setleri.",
+            item_category="Fen & Laboratuvar",
+            quantity=8,
+            condition_rating="İyi",
+            estimated_unit_value_tl=3200.0,
+            status="AVAILABLE"
+        )
+        surplus4 = SurplusItem(
+            id="surplus_uskudar_kitap",
+            school_id="sch_uskudar_akal",
+            title="60 Adet Dünya Klasikleri & Bilim Kitabı",
+            raw_text="Kütüphane bağışından elimizde çift olan temiz dünya klasikleri ve popüler bilim kitapları.",
+            item_category="Kütüphane & Kitap",
+            quantity=60,
+            condition_rating="İyi",
+            estimated_unit_value_tl=150.0,
+            status="AVAILABLE"
+        )
+        db.add_all([surplus1, surplus2, surplus3, surplus4])
+
         # Seed Needs
         need1 = NeedRequest(
             id="need_haydarpasa_bilisim",
@@ -150,7 +197,7 @@ def seed_database():
         )
         db.add_all([need1, need2, need3])
 
-        # Seed 1 completed transfer so impact counters and map arcs have real historic baseline
+        # Seed 2 completed transfers so impact counters and map arcs have real historic baseline
         transfer1 = Transfer(
             id="trf_initial_1",
             task_id="task_seed_1",

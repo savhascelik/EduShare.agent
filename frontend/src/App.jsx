@@ -147,10 +147,14 @@ function MainApp() {
           </div>
         </div>
 
-        {/* Interactive Leaflet Map */}
+        {/* Interactive Leaflet Map with Item Badges, Smart Clustering & Filter Panel */}
         <TransferMap
           schools={schools}
           transfers={transfers}
+          surplusItems={surplusItems}
+          needRequests={needRequests}
+          onOpenSurplus={() => setIsSurplusOpen(true)}
+          onOpenNeed={() => setIsNeedOpen(true)}
         />
 
         {/* Activity & Inventory Feed */}

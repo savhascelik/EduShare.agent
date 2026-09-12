@@ -37,13 +37,39 @@
       "openNeed": "Offener Schulbedarf",
       "transferRoute": "Aktive Transferroute"
     },
+    "filter": {
+      "panelTitle": "Kartenfilter & Entdecker",
+      "searchPlaceholder": "Schule, Bezirk, Artikel suchen...",
+      "showingResults": "{{schools}} Schulen • {{items}} Artikel angezeigt",
+      "typeTitle": "Ebenenauswahl",
+      "typeAll": "Alle",
+      "typeSurplus": "Überschüssige Artikel",
+      "typeNeed": "Offener Bedarf",
+      "typeTransfers": "Transferrouten",
+      "categoryTitle": "Gerätekategorie",
+      "categoryAll": "Alle Kategorien",
+      "baseMapTitle": "Kartendesign",
+      "baseClean": "Sauberes Voyager (Minimal)",
+      "basePositron": "Helles Positron",
+      "baseOsm": "OpenStreetMap",
+      "reset": "Filter zurücksetzen",
+      "collapse": "Panel ausblenden",
+      "expand": "Filter",
+      "noResults": "Keine passenden Schulen oder Artikel"
+    },
     "popup": {
       "transferBadge": "Verifizierter EduShare Transfer",
       "students": "SCHÜLER",
       "teachers": "LEHRER",
       "classrooms": "KLASSENRÄUME",
       "savings": "Ersparnis",
-      "co2": "CO2"
+      "co2": "CO2",
+      "availableSurplus": "Verfügbarer Überschuss",
+      "openNeeds": "Offene Bedarfe",
+      "noSurplus": "Kein aktiver Überschuss gelistet",
+      "noNeeds": "Kein aktiver Bedarf gemeldet",
+      "offerSurplus": "Artikel anbieten",
+      "requestNeed": "Bedarf melden"
     }
   },
   "hitl": {

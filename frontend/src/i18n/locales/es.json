@@ -37,13 +37,39 @@
       "openNeed": "Escuela con Solicitud Abierta",
       "transferRoute": "Ruta de Transferencia Activa"
     },
+    "filter": {
+      "panelTitle": "Filtros & Explorador",
+      "searchPlaceholder": "Buscar escuela, distrito, artículo...",
+      "showingResults": "Mostrando {{schools}} escuelas • {{items}} artículos",
+      "typeTitle": "Mostrar capa",
+      "typeAll": "Todos",
+      "typeSurplus": "Artículos excedentes",
+      "typeNeed": "Necesidades abiertas",
+      "typeTransfers": "Rutas de transferencia",
+      "categoryTitle": "Categoría de equipamiento",
+      "categoryAll": "Todas las categorías",
+      "baseMapTitle": "Estilo de mapa",
+      "baseClean": "Voyager Limpio (Mínimo)",
+      "basePositron": "Positron Claro",
+      "baseOsm": "OpenStreetMap",
+      "reset": "Restablecer filtros",
+      "collapse": "Ocultar panel",
+      "expand": "Filtros",
+      "noResults": "No se encontraron escuelas o artículos coincidentes"
+    },
     "popup": {
       "transferBadge": "Transferencia Verificada EduShare",
       "students": "ESTUDIANTES",
       "teachers": "DOCENTES",
       "classrooms": "AULAS",
       "savings": "Ahorro",
-      "co2": "CO2"
+      "co2": "CO2",
+      "availableSurplus": "Excedente Disponible",
+      "openNeeds": "Necesidades Abiertas",
+      "noSurplus": "No hay excedentes activos registrados",
+      "noNeeds": "No hay necesidades activas registradas",
+      "offerSurplus": "Ofrecer artículo",
+      "requestNeed": "Solicitar necesidad"
     }
   },
   "hitl": {
