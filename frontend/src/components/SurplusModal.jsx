@@ -1,0 +1,355 @@
+import React, { useState, useRef } from 'react';
+import { motion, AnimatePresence } from 'framer-motion';
+import { X, UploadCloud, Sparkles, Image as ImageIcon, Loader2, Check, AlertCircle } from 'lucide-react';
+import api from '../services/api';
+import { useAuth } from '../context/AuthContext';
+
+export const SurplusModal = ({
+  isOpen,
+  onClose,
+  onItemCreated,
+  onRequireAuth
+}) => {
+  const { isAuthenticated } = useAuth();
+  const fileInputRef = useRef(null);
+
+  const [imageFile, setImageFile] = useState(null);
+  const [imagePreview, setImagePreview] = useState(null);
+  const [analyzingImage, setAnalyzingImage] = useState(false);
+  const [submitting, setSubmitting] = useState(false);
+  const [error, setError] = useState(null);
+  const [aiFilled, setAiFilled] = useState(false);
+
+  // Form Fields
+  const [title, setTitle] = useState('');
+  const [itemCategory, setItemCategory] = useState('Bilişim & Bilgisayar');
+  const [quantity, setQuantity] = useState(1);
+  const [conditionRating, setConditionRating] = useState('İyi');
+  const [estimatedUnitValue, setEstimatedUnitValue] = useState(1500);
+  const [rawText, setRawText] = useState('');
+
+  const categories = [
+    'Bilişim & Bilgisayar',
+    'Mobilya & Sıra',
+    'Fen & Laboratuvar',
+    'Kütüphane & Kitap',
+    'Spor & Beden Eğitimi',
+    'Müzik & Sanat',
+    'Ofis & İdari Donanım',
+    'Genel Donanım'
+  ];
+
+  const handleFileChange = async (e) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+
+    setImageFile(file);
+    setImagePreview(URL.createObjectURL(file));
+    setError(null);
+    setAnalyzingImage(true);
+    setAiFilled(false);
+
+    try {
+      // Call Amazon Bedrock Multimodal Vision endpoint
+      const result = await api.analyzeImage(file);
+      if (result) {
+        setTitle(result.title || '');
+        if (result.category) setItemCategory(result.category);
+        if (result.estimated_quantity) setQuantity(Number(result.estimated_quantity));
+        if (result.condition_rating) setConditionRating(result.condition_rating);
+        if (result.estimated_unit_value_tl) setEstimatedUnitValue(Number(result.estimated_unit_value_tl));
+        if (result.notes) setRawText(result.notes);
+        setAiFilled(true);
+      }
+    } catch (err) {
+      console.error('Vision analysis error:', err);
+      setError('Görsel analiz edilirken bir hata oluştu veya bağlantı zaman aşımına uğradı. Bilgileri manuel girebilirsiniz.');
+    } finally {
+      setAnalyzingImage(false);
+    }
+  };
+
+  const handleSubmit = async (e) => {
+    e.preventDefault();
+    if (!isAuthenticated) {
+      onClose();
+      onRequireAuth && onRequireAuth();
+      return;
+    }
+
+    if (!title) {
+      setError('Lütfen eşya başlığını belirtiniz.');
+      return;
+    }
+
+    setSubmitting(true);
+    setError(null);
+
+    try {
+      const payload = {
+        title,
+        item_category: itemCategory,
+        quantity: Number(quantity),
+        condition_rating: conditionRating,
+        estimated_unit_value_tl: Number(estimatedUnitValue),
+        raw_text: rawText
+      };
+
+      const created = await api.createSurplus(payload);
+      onItemCreated && onItemCreated(created);
+      onClose();
+      resetForm();
+    } catch (err) {
+      setError(err?.response?.data?.detail || 'Eşya kaydedilirken bir hata oluştu.');
+    } finally {
+      setSubmitting(false);
+    }
+  };
+
+  const resetForm = () => {
+    setImageFile(null);
+    setImagePreview(null);
+    setTitle('');
+    setRawText('');
+    setQuantity(1);
+    setEstimatedUnitValue(1500);
+    setAiFilled(false);
+  };
+
+  return (
+    <AnimatePresence>
+      {isOpen && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
+          {/* Backdrop */}
+          <motion.div
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            onClick={onClose}
+            className="fixed inset-0 bg-slate-900/50 backdrop-blur-xs"
+          />
+
+          {/* Modal Content */}
+          <motion.div
+            initial={{ opacity: 0, scale: 0.95, y: 15 }}
+            animate={{ opacity: 1, scale: 1, y: 0 }}
+            exit={{ opacity: 0, scale: 0.95, y: 15 }}
+            className="relative w-full max-w-2xl bg-white rounded-3xl shadow-2xl border border-slate-200 overflow-hidden flex flex-col max-h-[90vh]"
+          >
+            {/* Header */}
+            <div className="p-6 border-b border-slate-200 flex items-center justify-between bg-emerald-50/50">
+              <div className="flex items-center space-x-3">
+                <div className="w-10 h-10 rounded-xl bg-emerald-600 text-white flex items-center justify-center shadow-sm">
+                  <Sparkles className="w-6 h-6" />
+                </div>
+                <div>
+                  <h3 className="font-extrabold text-lg text-slate-900">
+                    Fazla Eşya Bildirimi
+                  </h3>
+                  <p className="text-xs text-slate-500 font-medium">
+                    Fotoğraf yükleyin; Amazon Bedrock yapay zekası ayrıntıları otomatik çıkarsın.
+                  </p>
+                </div>
+              </div>
+              <button
+                onClick={onClose}
+                className="p-2 text-slate-400 hover:text-slate-700 hover:bg-slate-100 rounded-xl transition-colors"
+              >
+                <X className="w-5 h-5" />
+              </button>
+            </div>
+
+            {/* Form */}
+            <form onSubmit={handleSubmit} className="flex-1 overflow-y-auto p-6 space-y-5">
+              
+              {/* Photo Upload Area */}
+              <div>
+                <label className="block text-xs font-bold uppercase tracking-wider text-slate-700 mb-2">
+                  Eşya Fotoğrafı (Opsiyonel / Yapay Zeka Tanıma)
+                </label>
+                
+                <input
+                  type="file"
+                  ref={fileInputRef}
+                  onChange={handleFileChange}
+                  accept="image/*"
+                  className="hidden"
+                />
+
+                <div
+                  onClick={() => fileInputRef.current?.click()}
+                  className={`border-2 border-dashed rounded-2xl p-4 text-center cursor-pointer transition-all ${
+                    imagePreview
+                      ? 'border-emerald-400 bg-emerald-50/20'
+                      : 'border-slate-300 hover:border-emerald-500 bg-slate-50/60'
+                  }`}
+                >
+                  {imagePreview ? (
+                    <div className="flex items-center space-x-4">
+                      <img
+                        src={imagePreview}
+                        alt="Preview"
+                        className="w-24 h-24 object-cover rounded-xl border border-slate-200 shadow-2xs"
+                      />
+                      <div className="text-left flex-1">
+                        <div className="flex items-center space-x-2">
+                          <span className="text-xs font-bold text-slate-900">{imageFile?.name}</span>
+                          {aiFilled && (
+                            <span className="px-2 py-0.5 rounded-full text-[10px] font-bold bg-emerald-100 text-emerald-800 border border-emerald-300 flex items-center">
+                              <Check className="w-3 h-3 mr-0.5" /> Bedrock ile Tanındı
+                            </span>
+                          )}
+                        </div>
+                        {analyzingImage ? (
+                          <div className="flex items-center space-x-2 text-xs font-semibold text-amber-600 mt-2">
+                            <Loader2 className="w-4 h-4 animate-spin" />
+                            <span>Amazon Bedrock Görseli İnceliyor...</span>
+                          </div>
+                        ) : (
+                          <p className="text-xs text-slate-500 mt-1">
+                            Fotoğrafı değiştirmek için tıklayın.
+                          </p>
+                        )}
+                      </div>
+                    </div>
+                  ) : (
+                    <div className="py-4 space-y-2">
+                      <div className="w-12 h-12 mx-auto rounded-xl bg-emerald-100 text-emerald-700 flex items-center justify-center">
+                        <UploadCloud className="w-6 h-6" />
+                      </div>
+                      <div className="text-sm font-bold text-slate-800">
+                        Fotoğraf Yükleyin veya Sürükleyin
+                      </div>
+                      <p className="text-xs text-slate-400">
+                        Amazon Bedrock modeli nesneyi, miktarını ve kondisyonunu otomatik doldurur.
+                      </p>
+                    </div>
+                  )}
+                </div>
+              </div>
+
+              {/* Title */}
+              <div>
+                <label className="block text-xs font-bold text-slate-700 uppercase mb-1">
+                  Eşya Başlığı *
+                </label>
+                <input
+                  type="text"
+                  required
+                  value={title}
+                  onChange={(e) => setTitle(e.target.value)}
+                  placeholder="Örn: 15 Adet Lenovo Masaüstü Bilgisayar & Monitör"
+                  className="w-full px-4 py-2.5 rounded-xl border border-slate-300 focus:outline-none focus:ring-2 focus:ring-emerald-500 text-sm font-medium"
+                />
+              </div>
+
+              {/* Category & Condition */}
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                <div>
+                  <label className="block text-xs font-bold text-slate-700 uppercase mb-1">
+                    Kategori
+                  </label>
+                  <select
+                    value={itemCategory}
+                    onChange={(e) => setItemCategory(e.target.value)}
+                    className="w-full px-3.5 py-2.5 rounded-xl border border-slate-300 bg-white text-sm font-medium focus:outline-none focus:ring-2 focus:ring-emerald-500"
+                  >
+                    {categories.map((c) => (
+                      <option key={c} value={c}>{c}</option>
+                    ))}
+                  </select>
+                </div>
+
+                <div>
+                  <label className="block text-xs font-bold text-slate-700 uppercase mb-1">
+                    Fiziksel Durum
+                  </label>
+                  <select
+                    value={conditionRating}
+                    onChange={(e) => setConditionRating(e.target.value)}
+                    className="w-full px-3.5 py-2.5 rounded-xl border border-slate-300 bg-white text-sm font-medium focus:outline-none focus:ring-2 focus:ring-emerald-500"
+                  >
+                    <option value="Sıfır / Paketli">Sıfır / Paketli</option>
+                    <option value="Çok İyi (Hafif Kullanılmış)">Çok İyi (Hafif Kullanılmış)</option>
+                    <option value="İyi">İyi (Çalışır Durumda)</option>
+                    <option value="Bakım / Onarım İhtiyacı Var">Bakım / Onarım İhtiyacı Var</option>
+                  </select>
+                </div>
+              </div>
+
+              {/* Quantity & Unit Value */}
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                <div>
+                  <label className="block text-xs font-bold text-slate-700 uppercase mb-1">
+                    Adet / Miktar
+                  </label>
+                  <input
+                    type="number"
+                    min="1"
+                    value={quantity}
+                    onChange={(e) => setQuantity(e.target.value)}
+                    className="w-full px-4 py-2.5 rounded-xl border border-slate-300 focus:outline-none focus:ring-2 focus:ring-emerald-500 text-sm font-medium"
+                  />
+                </div>
+
+                <div>
+                  <label className="block text-xs font-bold text-slate-700 uppercase mb-1">
+                    Tahmini Birim Değer (₺)
+                  </label>
+                  <input
+                    type="number"
+                    min="0"
+                    value={estimatedUnitValue}
+                    onChange={(e) => setEstimatedUnitValue(e.target.value)}
+                    className="w-full px-4 py-2.5 rounded-xl border border-slate-300 focus:outline-none focus:ring-2 focus:ring-emerald-500 text-sm font-medium"
+                  />
+                </div>
+              </div>
+
+              {/* Notes / Raw Text */}
+              <div>
+                <label className="block text-xs font-bold text-slate-700 uppercase mb-1">
+                  Açıklama & Notlar
+                </label>
+                <textarea
+                  rows="3"
+                  value={rawText}
+                  onChange={(e) => setRawText(e.target.value)}
+                  placeholder="Eşyaların durumu, parça eksikleri veya teslim detayları..."
+                  className="w-full px-4 py-2 rounded-xl border border-slate-300 focus:outline-none focus:ring-2 focus:ring-emerald-500 text-sm"
+                />
+              </div>
+
+              {error && (
+                <div className="flex items-center space-x-2 p-3 rounded-xl bg-rose-50 border border-rose-200 text-rose-700 text-xs font-semibold">
+                  <AlertCircle className="w-4 h-4 shrink-0" />
+                  <span>{error}</span>
+                </div>
+              )}
+
+              {/* Actions */}
+              <div className="pt-2 flex items-center justify-end space-x-3">
+                <button
+                  type="button"
+                  onClick={onClose}
+                  className="px-4 py-2.5 rounded-xl border border-slate-300 text-slate-700 text-sm font-semibold hover:bg-slate-50 transition-colors"
+                >
+                  Vazgeç
+                </button>
+                <button
+                  type="submit"
+                  disabled={submitting || analyzingImage}
+                  className="flex items-center space-x-2 px-6 py-2.5 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white text-sm font-bold shadow-md shadow-emerald-600/30 transition-all disabled:opacity-50"
+                >
+                  {submitting && <Loader2 className="w-4 h-4 animate-spin" />}
+                  <span>Fazla Eşyayı Bildir & Ajanı Başlat</span>
+                </button>
+              </div>
+
+            </form>
+          </motion.div>
+        </div>
+      )}
+    </AnimatePresence>
+  );
+};

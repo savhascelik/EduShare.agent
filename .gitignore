@@ -1,0 +1,18 @@
+# Dependencies
+backend/venv/
+backend/__pycache__/
+backend/*/__pycache__/
+backend/*/*/__pycache__/
+frontend/node_modules/
+frontend/dist/
+
+# Environment & Credentials
+.env
+backend/.env
+*.log
+
+# OS & IDE
+.DS_Store
+Thumbs.db
+.vscode/
+.idea/
