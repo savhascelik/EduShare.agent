@@ -12,8 +12,13 @@ from app.schemas import AgentTaskResponse, HITLApprovalAction, TransferResponse,
 from app.auth import get_optional_current_school, get_current_school
 from app.sse import sse_manager
 from app.pulse_logger import get_recent_pulse_events, record_pulse_event
-from app.worker import run_autonomous_inventory_sweep
+import re
 from app.agent import haversine_distance_km
+
+def clean_item_title_py(title: str) -> str:
+    if not title:
+        return "Eğitim Malzemesi"
+    return re.sub(r'^\d+\s+(Adet|adet|Pieces?|Items?)\s+', '', title, flags=re.IGNORECASE).strip()
 
 router = APIRouter(prefix="/api/agent", tags=["Agent & HITL Approvals"])
 
@@ -23,55 +28,58 @@ def get_agent_tasks(
     current_school: Optional[School] = Depends(get_optional_current_school),
     db: Session = Depends(get_db)
 ):
+    # Security Gate: Anonymous unauthenticated users cannot view or intercept school approval queues
+    if not current_school:
+        return []
+
     query = db.query(AgentTask)
     if status:
         query = query.filter(AgentTask.status == status)
     
     tasks = query.order_by(AgentTask.created_at.desc()).all()
     
-    # If a school is logged in, filter or prioritize tasks where their school is the source, destination, or initiator
-    if current_school:
-        user_tasks = []
-        for t in tasks:
-            payload = t.match_payload or {}
-            from_id = payload.get("from_school_id")
-            to_id = payload.get("to_school_id")
-            if (
-                t.initiator_school_id == current_school.id or
-                t.target_school_id == current_school.id or
-                from_id == current_school.id or
-                to_id == current_school.id
-            ):
+    # Strictly return tasks where the logged-in school is the source, recipient, or initiator
+    user_tasks = []
+    for t in tasks:
+        payload = t.match_payload or {}
+        from_id = payload.get("from_school_id")
+        to_id = payload.get("to_school_id")
+        if (
+            t.initiator_school_id == current_school.id or
+            t.target_school_id == current_school.id or
+            from_id == current_school.id or
+            to_id == current_school.id
+        ):
+            user_tasks.append(t)
+        elif not status or status in ["AWAITING_HUMAN_APPROVAL", "PENDING_RECIPIENT_REQUEST", "AWAITING_DONOR_APPROVAL"]:
+            item = db.query(SurplusItem).filter(SurplusItem.id == t.source_id).first()
+            if item and item.school_id == current_school.id:
                 user_tasks.append(t)
-            elif not status or status == "AWAITING_HUMAN_APPROVAL":
-                item = db.query(SurplusItem).filter(SurplusItem.id == t.source_id).first()
-                if item and item.school_id == current_school.id:
-                    user_tasks.append(t)
-        if user_tasks:
-            return [AgentTaskResponse.from_orm(t) for t in user_tasks]
-            
-    return [AgentTaskResponse.from_orm(t) for t in tasks]
+                
+    return [AgentTaskResponse.from_orm(t) for t in user_tasks]
 
 @router.post("/approve/{task_id}")
 async def approve_transfer_task(
     task_id: str,
     action: Optional[HITLApprovalAction] = None,
-    current_school: Optional[School] = Depends(get_optional_current_school),
+    current_school: School = Depends(get_current_school),
     db: Session = Depends(get_db)
 ):
     """
-    Human-in-the-Loop (HITL) Gate with Row-Level Concurrency Locking & Twin Proposal Merging:
-    Atomically validates available stock, adapts quantities, merges crossing proposals,
-    deducts inventory, records immutable StockLedger entry, and executes official transfer.
+    Human-in-the-Loop (HITL) Gate with Bilateral Handshake & Concurrency Locking:
+    Phase 1 (Recipient Request): Validates recipient school identity, reserves stock, advances to Phase 2.
+    Phase 2 (Donor Dispatch): Validates donor school identity, row-level locks stock, adapts sibling proposals,
+    deducts inventory, records immutable StockLedger entry, and executes official MEB transfer.
     """
     task = db.query(AgentTask).filter(AgentTask.id == task_id).first()
     if not task:
         raise HTTPException(status_code=404, detail="Ajan görevi bulunamadı.")
     
-    if task.status != "AWAITING_HUMAN_APPROVAL":
+    valid_statuses = ["PENDING_RECIPIENT_REQUEST", "AWAITING_DONOR_APPROVAL", "AWAITING_HUMAN_APPROVAL"]
+    if task.status not in valid_statuses:
         raise HTTPException(status_code=400, detail=f"Bu görev onay bekler durumda değil (Mevcut Durum: {task.status}).")
 
-    payload = task.match_payload or {}
+    payload = dict(task.match_payload or {})
     surplus_id = payload.get("surplus_item_id")
     need_id = payload.get("need_id")
     from_school_id = payload.get("from_school_id")
@@ -80,9 +88,74 @@ async def approve_transfer_task(
     savings_tl = payload.get("estimated_savings_tl", 0.0)
     co2_kg = payload.get("prevented_co2_kg", 0.0)
     item_title = payload.get("item_title", "Eğitim Malzemesi")
-
     transfer_quantity = int(quantity) if quantity else 1
-    remaining_stock = 0
+
+    # =========================================================================
+    # PHASE 1: Recipient School Requests the Item (Bilateral Step 1)
+    # =========================================================================
+    if task.status == "PENDING_RECIPIENT_REQUEST":
+        if current_school.id != to_school_id:
+            raise HTTPException(
+                status_code=403, 
+                detail=f"Bu eşleştirme için resmi talep iletme yetkisi sadece ihtiyaç sahibi okula ({payload.get('to_school_name', 'Alıcı Okul')}) aittir."
+            )
+        
+        surplus = db.query(SurplusItem).filter(SurplusItem.id == surplus_id).first()
+        if not surplus or surplus.quantity < 1:
+            task.status = "SUPERSEDED"
+            payload["superseded_reason"] = "STOCK_DEPLETED"
+            task.match_payload = dict(payload)
+            flag_modified(task, "match_payload")
+            db.commit()
+            await sse_manager.broadcast("TASK_SUPERSEDED", {"task_ids": [task.id], "reason": "STOCK_DEPLETED"})
+            raise HTTPException(status_code=409, detail="Bu eşyanın stoku başka bir işlemle tükenmiştir.")
+
+        # Temporarily reserve stock for this recipient
+        surplus.reserved_quantity = (surplus.reserved_quantity or 0) + transfer_quantity
+
+        # Advance to Phase 2: Awaiting Donor Dispatch Permission
+        task.status = "AWAITING_DONOR_APPROVAL"
+        task.target_school_id = from_school_id
+        payload["approval_stage"] = "DONOR_APPROVAL"
+        payload["current_pending_school_id"] = from_school_id
+        payload["recipient_requested_at"] = datetime.utcnow().isoformat()
+        payload["recipient_principal"] = current_school.principal_name
+        task.match_payload = dict(payload)
+        flag_modified(task, "match_payload")
+        db.commit()
+
+        clean_title = clean_item_title_py(item_title)
+        await sse_manager.broadcast("TASK_STAGE_UPDATED", {
+            "task_id": task.id,
+            "stage": "DONOR_APPROVAL",
+            "target_school_id": from_school_id,
+            "payload": payload
+        })
+        await sse_manager.broadcast("NEW_HITL_TASK", {
+            "task_id": task.id,
+            "card": payload
+        })
+        record_pulse_event(
+            event_type="proposal",
+            step_key="recipient_requested",
+            params={"from": payload.get("from_school_name", "")[:15], "to": current_school.name[:15], "qty": transfer_quantity},
+            raw_text=f"{current_school.name} müdürlüğü {payload.get('from_school_name')} envanterindeki {transfer_quantity} adet {clean_title} için resmi talep oluşturdu. Ajan sevk onayını kaynak okula iletti."
+        )
+        return {
+            "status": "SUCCESS",
+            "stage": "DONOR_APPROVAL",
+            "message": f"Resmi devir talebi {payload.get('from_school_name', 'Kaynak Okul')} müdürlüğüne başarıyla iletildi. Okulun sevk onayı bekleniyor.",
+            "task": AgentTaskResponse.from_orm(task)
+        }
+
+    # =========================================================================
+    # PHASE 2: Donor School Authorizes Dispatch & Executes Official MEB Transfer
+    # =========================================================================
+    if current_school.id != from_school_id:
+        raise HTTPException(
+            status_code=403, 
+            detail=f"Bu sevkiyatı ve resmi MEB devir protokolünü onaylama yetkisi sadece malzeme sahibi okula ({payload.get('from_school_name', 'Devreden Okul')}) aittir."
+        )
 
     # 1. Acquire Surplus with Concurrency Lock (Atomic check-and-decrement)
     surplus_query = db.query(SurplusItem).filter(SurplusItem.id == surplus_id)
@@ -96,7 +169,6 @@ async def approve_transfer_task(
 
     available_stock = surplus.quantity
     if available_stock <= 0:
-        # Race Condition: stock was exhausted by a concurrent approval!
         task.status = "SUPERSEDED"
         payload["superseded_reason"] = "STOCK_DEPLETED"
         task.match_payload = dict(payload)
@@ -104,6 +176,10 @@ async def approve_transfer_task(
         db.commit()
         await sse_manager.broadcast("TASK_SUPERSEDED", {"task_ids": [task.id], "reason": "STOCK_DEPLETED"})
         raise HTTPException(status_code=409, detail="Bu eşyanın stoku başka bir işlemle tükenmiştir.")
+
+    # Release any reserved quantity on surplus
+    if surplus.reserved_quantity:
+        surplus.reserved_quantity = max(0, surplus.reserved_quantity - transfer_quantity)
 
     orig_quantity = int(quantity) if quantity else 1
     # Adaptive partial stock: if requested is higher than available stock, cap to available
@@ -145,7 +221,7 @@ async def approve_transfer_task(
     # 3. Consolidate Crossing / Twin Proposals (LLM proposal vs User direct proposal for same pairing)
     crossing_tasks = db.query(AgentTask).filter(
         AgentTask.id != task.id,
-        AgentTask.status == "AWAITING_HUMAN_APPROVAL"
+        AgentTask.status.in_(["AWAITING_HUMAN_APPROVAL", "PENDING_RECIPIENT_REQUEST", "AWAITING_DONOR_APPROVAL"])
     ).all()
 
     merged_task_ids = []
@@ -192,10 +268,7 @@ async def approve_transfer_task(
                     record_pulse_event(
                         event_type="decision",
                         step_key="task_superseded",
-                        params={
-                            "item": item_title,
-                            "reason": "depleted"
-                        },
+                        params={"item": item_title, "reason": "depleted"},
                         raw_text=f"Stok tükendiği için {s_task.id[:8]} nolu eşleşme önerisi otomatik arşivlendi."
                     )
                 else:
@@ -238,12 +311,13 @@ async def approve_transfer_task(
     db.add(stock_ledger_entry)
 
     # 7. Create Transfer Log
+    clean_title = clean_item_title_py(item_title)
     transfer = Transfer(
         task_id=task.id,
         surplus_item_id=surplus_id,
         from_school_id=from_school_id,
         to_school_id=to_school_id,
-        item_summary=item_title,
+        item_summary=clean_title,
         quantity=transfer_quantity,
         estimated_savings_tl=savings_tl,
         prevented_co2_kg=co2_kg,
@@ -254,6 +328,10 @@ async def approve_transfer_task(
     
     # Mark task completed
     task.status = "COMPLETED"
+    payload["protocol_code"] = protocol_code
+    payload["approval_stage"] = "COMPLETED"
+    task.match_payload = dict(payload)
+    flag_modified(task, "match_payload")
     db.commit()
     db.refresh(transfer)
 
@@ -269,7 +347,7 @@ async def approve_transfer_task(
         "to_school_name": to_school.name if to_school else "Hedef Okul",
         "to_lat": to_school.latitude if to_school else 0.0,
         "to_lng": to_school.longitude if to_school else 0.0,
-        "item_summary": item_title,
+        "item_summary": clean_title,
         "quantity": transfer_quantity,
         "remaining_stock": remaining_stock,
         "protocol_code": protocol_code,
@@ -295,18 +373,19 @@ async def approve_transfer_task(
         event_type="success",
         step_key="transfer_finalized",
         params={
-            "item": item_title,
+            "item": clean_title,
             "from_school": from_school.name if from_school else "",
             "to_school": to_school.name if to_school else "",
             "savings_tl": savings_tl,
             "co2_kg": co2_kg,
             "protocol_code": protocol_code
         },
-        raw_text=f"Principal approved transfer ({protocol_code}): {item_title} ({from_school.name if from_school else ''} -> {to_school.name if to_school else ''}). Remaining stock: {remaining_stock}."
+        raw_text=f"Principal approved transfer ({protocol_code}): {clean_title} ({from_school.name if from_school else ''} -> {to_school.name if to_school else ''}). Remaining stock: {remaining_stock}."
     )
 
     return {
         "status": "SUCCESS",
+        "stage": "COMPLETED",
         "message": f"Tebrikler! {from_school.name if from_school else ''} ➔ {to_school.name if to_school else ''} transferi onaylandı.",
         "transfer": transfer_data
     }
@@ -315,23 +394,50 @@ async def approve_transfer_task(
 async def reject_transfer_task(
     task_id: str,
     action: Optional[HITLApprovalAction] = None,
+    current_school: School = Depends(get_current_school),
     db: Session = Depends(get_db)
 ):
     task = db.query(AgentTask).filter(AgentTask.id == task_id).first()
     if not task:
         raise HTTPException(status_code=404, detail="Ajan görevi bulunamadı.")
-    
+
+    payload = dict(task.match_payload or {})
+    from_school_id = payload.get("from_school_id")
+    to_school_id = payload.get("to_school_id")
+    surplus_id = payload.get("surplus_item_id")
+    transfer_qty = int(payload.get("quantity", 1))
+
+    if task.status == "PENDING_RECIPIENT_REQUEST":
+        if current_school.id != to_school_id:
+            raise HTTPException(status_code=403, detail="Bu eşleştirme önerisini sadece ihtiyaç sahibi okul reddedebilir.")
+        payload["rejection_stage"] = "RECIPIENT_DECLINED"
+    elif task.status in ["AWAITING_DONOR_APPROVAL", "AWAITING_HUMAN_APPROVAL"]:
+        if current_school.id != from_school_id:
+            raise HTTPException(status_code=403, detail="Bu sevkiyat talebini sadece malzeme sahibi okul reddedebilir.")
+        payload["rejection_stage"] = "DONOR_DECLINED"
+        # Release reserved stock if any
+        if surplus_id:
+            surplus = db.query(SurplusItem).filter(SurplusItem.id == surplus_id).first()
+            if surplus and surplus.reserved_quantity:
+                surplus.reserved_quantity = max(0, surplus.reserved_quantity - transfer_qty)
+
     task.status = "REJECTED"
+    payload["rejected_by"] = current_school.name
+    payload["rejected_at"] = datetime.utcnow().isoformat()
+    reason = (action.reason if action and action.reason else (action.notes if action else None)) or "Okul müdürlüğü tarafından reddedildi."
+    payload["rejection_reason"] = reason
+    task.match_payload = payload
+    flag_modified(task, "match_payload")
     db.commit()
 
-    await sse_manager.broadcast("TRANSFER_REJECTED", {"task_id": task.id})
-    return {"status": "SUCCESS", "message": "Transfer önerisi reddedildi. Eşya envanterde beklemeye devam ediyor."}
+    await sse_manager.broadcast("TRANSFER_REJECTED", {"task_id": task.id, "reason": reason})
+    return {"status": "SUCCESS", "message": "Transfer önerisi reddedildi."}
 
 @router.post("/tasks/{task_id}/withdraw")
 @router.post("/withdraw/{task_id}")
 async def withdraw_proposal(
     task_id: str,
-    current_school: Optional[School] = Depends(get_optional_current_school),
+    current_school: School = Depends(get_current_school),
     db: Session = Depends(get_db)
 ):
     """
@@ -342,13 +448,24 @@ async def withdraw_proposal(
     task = db.query(AgentTask).filter(AgentTask.id == task_id).first()
     if not task:
         raise HTTPException(status_code=404, detail="Teklif bulunamadı.")
-    
-    if task.status != "AWAITING_HUMAN_APPROVAL":
-        raise HTTPException(status_code=400, detail=f"Bu teklif geri çekilemez durumda (Mevcut Durum: {task.status}).")
+
+    payload = dict(task.match_payload or {})
+    from_school_id = payload.get("from_school_id")
+    to_school_id = payload.get("to_school_id")
+    surplus_id = payload.get("surplus_item_id")
+    transfer_qty = int(payload.get("quantity", 1))
+
+    if current_school.id not in [from_school_id, to_school_id, task.initiator_school_id]:
+        raise HTTPException(status_code=403, detail="Bu teklifi yalnızca taraf okullar geri çekebilir.")
+
+    # Release any reserved stock
+    if surplus_id:
+        surplus = db.query(SurplusItem).filter(SurplusItem.id == surplus_id).first()
+        if surplus and surplus.reserved_quantity:
+            surplus.reserved_quantity = max(0, surplus.reserved_quantity - transfer_qty)
 
     task.status = "WITHDRAWN"
-    payload = dict(task.match_payload or {})
-    payload["withdrawn_by"] = current_school.name if current_school else "Yönetici"
+    payload["withdrawn_by"] = current_school.name
     payload["withdrawn_at"] = datetime.utcnow().isoformat()
     task.match_payload = payload
     flag_modified(task, "match_payload")
@@ -359,7 +476,7 @@ async def withdraw_proposal(
         event_type="decision",
         step_key="task_withdrawn",
         params={"task_id": task.id[:8]},
-        raw_text=f"{task.id[:8]} nolu teklif başlatan tarafça geri çekildi."
+        raw_text=f"{task.id[:8]} nolu teklif {current_school.name} tarafından geri çekildi."
     )
     return {"status": "SUCCESS", "message": "Teklif başarıyla geri çekildi."}
 

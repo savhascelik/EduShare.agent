@@ -233,12 +233,14 @@ def create_hitl_approval_card(
             "estimated_savings_tl": savings_tl,
             "prevented_co2_kg": co2_kg,
             "reasoning": reasoning,
-            "alternative_candidate": alternative_candidate
+            "alternative_candidate": alternative_candidate,
+            "approval_stage": "RECIPIENT_REQUEST",
+            "current_pending_school_id": to_school_id
         }
         
         task = db.query(AgentTask).filter(AgentTask.id == task_id).first()
         if task:
-            task.status = "AWAITING_HUMAN_APPROVAL"
+            task.status = "PENDING_RECIPIENT_REQUEST"
             task.initiator_type = "AI"
             task.initiator_school_id = None
             task.target_school_id = to_school_id

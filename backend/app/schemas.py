@@ -153,8 +153,9 @@ class StockLedgerResponse(BaseModel):
         from_attributes = True
 
 class HITLApprovalAction(BaseModel):
-    action: str # "APPROVE" or "REJECT" or "WITHDRAW"
+    action: Optional[str] = "APPROVE" # "APPROVE", "REQUEST", "REJECT", "WITHDRAW"
     notes: Optional[str] = None
+    reason: Optional[str] = None
 
 # Transfer Schemas
 class TransferResponse(BaseModel):

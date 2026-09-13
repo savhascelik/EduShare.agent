@@ -58,7 +58,7 @@ async def process_single_task(task_id: str):
             
             # Refresh task to see if tool updated it
             db.refresh(task)
-            if task.status == "AWAITING_HUMAN_APPROVAL" and task.match_payload:
+            if task.status in ["AWAITING_HUMAN_APPROVAL", "PENDING_RECIPIENT_REQUEST", "AWAITING_DONOR_APPROVAL"] and task.match_payload:
                 await sse_manager.broadcast("NEW_HITL_TASK", {
                     "task_id": task.id,
                     "card": task.match_payload
@@ -99,7 +99,7 @@ async def process_single_task(task_id: str):
             logger.info(f"Strands Agent completed for NEED task {task.id}")
             
             db.refresh(task)
-            if task.status == "AWAITING_HUMAN_APPROVAL" and task.match_payload:
+            if task.status in ["AWAITING_HUMAN_APPROVAL", "PENDING_RECIPIENT_REQUEST", "AWAITING_DONOR_APPROVAL"] and task.match_payload:
                 await sse_manager.broadcast("NEW_HITL_TASK", {
                     "task_id": task.id,
                     "card": task.match_payload
