@@ -23,36 +23,32 @@ jobs:
           SSH_KEY: ${{ secrets.EC2_SSH_KEY }}
         run: |
           echo "=========================================="
-          echo "🔍 Environment & Secret Diagnostics:"
+          echo "🚀 Configuring SSH Client on Runner..."
           echo "=========================================="
-          echo "SSH_HOST: $SSH_HOST (len: ${#SSH_HOST})"
-          echo "SSH_USER: $SSH_USER (len: ${#SSH_USER})"
-          echo "SSH_KEY length: ${#SSH_KEY}"
-          echo "SSH_KEY line count: $(printf '%s\n' "$SSH_KEY" | wc -l)"
-          echo "SSH_KEY start: $(printf '%s\n' "$SSH_KEY" | head -n 1)"
-          echo "SSH_KEY end:   $(printf '%s\n' "$SSH_KEY" | tail -n 1)"
-          echo "=========================================="
-
-          if [ -z "$SSH_KEY" ]; then
-            echo "❌ ERROR: SSH_KEY secret is completely empty!"
-            exit 1
-          fi
-
           mkdir -p ~/.ssh
           chmod 700 ~/.ssh
 
-          # Write key file
-          printf '%s\n' "$SSH_KEY" > ~/.ssh/id_rsa
+          # Strip Windows CRLF (\r) and ensure clean Linux LF (\n)
+          printf '%s\n' "$SSH_KEY" | tr -d '\r' > ~/.ssh/id_rsa
           chmod 600 ~/.ssh/id_rsa
 
-          # Check with ssh-keygen
-          echo "🔍 Verifying key with ssh-keygen..."
-          ssh-keygen -y -f ~/.ssh/id_rsa || {
-            echo "❌ ERROR: ssh-keygen could not parse the private key."
-            exit 1
-          }
+          # If the key is base64-encoded, decode it
+          if ! grep -q "BEGIN" ~/.ssh/id_rsa; then
+            echo "Key appears to be Base64 encoded, attempting decode..."
+            echo "$SSH_KEY" | base64 -d | tr -d '\r' > ~/.ssh/id_rsa
+            chmod 600 ~/.ssh/id_rsa
+          fi
 
-          echo "✅ SSH Key verified successfully."
+          echo "🔍 Validating SSH key structure..."
+          if ! ssh-keygen -y -f ~/.ssh/id_rsa > /dev/null 2>&1; then
+            echo "❌ ERROR: SSH key could not be parsed by ssh-keygen."
+            echo "First line: $(head -n 1 ~/.ssh/id_rsa)"
+            echo "Last line:  $(tail -n 1 ~/.ssh/id_rsa)"
+            echo "Line count: $(wc -l < ~/.ssh/id_rsa)"
+            exit 1
+          fi
+
+          echo "✅ SSH Key successfully validated with OpenSSH!"
           echo "📡 Connecting to EC2 ($SSH_USER@$SSH_HOST)..."
 
           ssh -o StrictHostKeyChecking=no -o ConnectTimeout=20 -i ~/.ssh/id_rsa "$SSH_USER@$SSH_HOST" << 'EOF'
