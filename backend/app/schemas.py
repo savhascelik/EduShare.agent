@@ -199,3 +199,15 @@ class VisionAnalyzeResponse(BaseModel):
     condition_rating: str
     estimated_unit_value_tl: float
     notes: str
+    quota_remaining: Optional[int] = None
+    quota_total: Optional[int] = None
+    is_cached: Optional[bool] = False
+    quota_message: Optional[str] = None
+
+class QuotaStatusResponse(BaseModel):
+    user_type: str
+    remaining: int
+    limit: int
+    used: int
+    global_used: int
+    global_limit: int

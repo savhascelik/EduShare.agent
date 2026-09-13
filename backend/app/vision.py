@@ -18,12 +18,12 @@ def analyze_surplus_image(image_bytes: bytes, content_type: str = "image/jpeg") 
     if pil_img.mode in ("RGBA", "P"):
         pil_img = pil_img.convert("RGB")
     
-    # Resize if too large to conserve bandwidth & tokens
-    max_size = (1280, 1280)
+    # Resize to 800x800 to conserve Bedrock vision tokens & bandwidth
+    max_size = (800, 800)
     pil_img.thumbnail(max_size, Image.Resampling.LANCZOS)
     
     buf = io.BytesIO()
-    pil_img.save(buf, format="JPEG", quality=85)
+    pil_img.save(buf, format="JPEG", quality=80)
     normalized_bytes = buf.getvalue()
     
     system_prompt = (

@@ -1,9 +1,10 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useTranslation } from 'react-i18next';
 import { Sparkles, Building2, PlusCircle, HandHeart, CheckCircle2, LogOut, Radio, Menu, X, ShieldAlert } from 'lucide-react';
 import { useAuth } from '../context/AuthContext';
 import { useStream } from '../context/StreamContext';
 import { LanguageSelector } from './LanguageSelector';
+import api from '../services/api';
 
 export const Navbar = ({
   onOpenSurplus,
@@ -17,6 +18,15 @@ export const Navbar = ({
   const { currentSchool, isAuthenticated, logout } = useAuth();
   const { connected } = useStream();
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
+  const [quota, setQuota] = useState(null);
+
+  useEffect(() => {
+    if (isAuthenticated) {
+      api.getQuota().then((q) => setQuota(q)).catch(() => {});
+    } else {
+      setQuota(null);
+    }
+  }, [isAuthenticated]);
 
   return (
     <header className="sticky top-0 z-40 bg-white/90 backdrop-blur-md border-b border-slate-200/80 shadow-2xs">
@@ -94,7 +104,16 @@ export const Navbar = ({
 
           {/* School Profile / Sign In */}
           {isAuthenticated ? (
-            <div className="flex items-center space-x-1 pl-1 sm:pl-2 sm:border-l sm:border-slate-200">
+            <div className="flex items-center space-x-2 pl-1 sm:pl-2 sm:border-l sm:border-slate-200">
+              {quota && (
+                <div
+                  title={`Günlük Amazon Bedrock YZ Kotası: ${quota.remaining}/${quota.limit} Kalan (Genel Sistem Tavanı: ${quota.global_used}/${quota.global_limit})`}
+                  className="hidden md:flex items-center space-x-1.5 px-2.5 py-1 rounded-full bg-emerald-50 border border-emerald-200 text-emerald-800 text-[11px] font-semibold"
+                >
+                  <Sparkles className="w-3.5 h-3.5 text-emerald-600" />
+                  <span>YZ Kotası: <strong className="text-emerald-700 font-mono">{quota.remaining}/{quota.limit}</strong></span>
+                </div>
+              )}
               <button
                 onClick={onOpenProfile}
                 title="School Profile & Capacity"

@@ -1,6 +1,6 @@
-import React, { useState, useRef } from 'react';
+import React, { useState, useRef, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { X, UploadCloud, Sparkles, Loader2, Check, AlertCircle } from 'lucide-react';
+import { X, UploadCloud, Sparkles, Loader2, Check, AlertCircle, Zap } from 'lucide-react';
 import { useTranslation } from 'react-i18next';
 import api from '../services/api';
 import { useAuth } from '../context/AuthContext';
@@ -21,6 +21,24 @@ export const SurplusModal = ({
   const [submitting, setSubmitting] = useState(false);
   const [error, setError] = useState(null);
   const [aiFilled, setAiFilled] = useState(false);
+  const [quotaInfo, setQuotaInfo] = useState(null);
+
+  // Load quota when modal opens
+  useEffect(() => {
+    if (isOpen) {
+      api.getQuota()
+        .then((q) => {
+          setQuotaInfo({
+            remaining: q.remaining,
+            limit: q.limit,
+            user_type: q.user_type,
+            global_used: q.global_used,
+            global_limit: q.global_limit
+          });
+        })
+        .catch(() => {});
+    }
+  }, [isOpen]);
 
   // Form Fields
   const [title, setTitle] = useState('');
@@ -68,10 +86,27 @@ export const SurplusModal = ({
         if (result.estimated_unit_value_tl) setEstimatedUnitValue(Number(result.estimated_unit_value_tl));
         if (result.notes) setRawText(result.notes);
         setAiFilled(true);
+
+        if (result.quota_remaining !== undefined && result.quota_remaining !== null) {
+          setQuotaInfo((prev) => ({
+            ...prev,
+            remaining: result.quota_remaining,
+            limit: result.quota_total || prev?.limit || 50,
+            is_cached: result.is_cached,
+            message: result.quota_message
+          }));
+        }
       }
     } catch (err) {
       console.error('Vision analysis error:', err);
-      setError('Vision analysis could not be completed. You can manually enter item details.');
+      const detail = err?.response?.data?.detail;
+      if (err?.response?.status === 429) {
+        setError(detail || 'Günlük yapay zeka kotası dolmuştur.');
+      } else if (err?.response?.status === 413) {
+        setError(detail || 'Görsel boyutu 4MB sınırını aşıyor.');
+      } else {
+        setError(detail || 'Vision analysis could not be completed. You can manually enter item details.');
+      }
     } finally {
       setAnalyzingImage(false);
     }
@@ -176,9 +211,20 @@ export const SurplusModal = ({
               
               {/* Photo Upload Area */}
               <div>
-                <label className="block text-xs font-bold uppercase tracking-wider text-slate-700 mb-2">
-                  {t('surplus.photoLabel')}
-                </label>
+                <div className="flex items-center justify-between mb-2">
+                  <label className="text-xs font-bold uppercase tracking-wider text-slate-700">
+                    {t('surplus.photoLabel')}
+                  </label>
+                  {quotaInfo && (
+                    <div 
+                      title="Günlük Amazon Bedrock görsel analiz kotası"
+                      className="flex items-center space-x-1.5 text-[11px] font-bold px-2.5 py-0.5 rounded-full bg-slate-100 text-slate-700 border border-slate-200"
+                    >
+                      <Sparkles className="w-3 h-3 text-emerald-600" />
+                      <span>YZ Kotası: <strong className="text-emerald-700">{quotaInfo.remaining}/{quotaInfo.limit}</strong></span>
+                    </div>
+                  )}
+                </div>
                 
                 <input
                   type="file"
@@ -238,6 +284,17 @@ export const SurplusModal = ({
                     </div>
                   )}
                 </div>
+
+                {quotaInfo?.message && (
+                  <div className={`mt-2 p-2.5 rounded-xl text-xs font-semibold flex items-center space-x-2 transition-all ${
+                    quotaInfo.is_cached
+                      ? 'bg-amber-50 text-amber-900 border border-amber-200'
+                      : 'bg-emerald-50 text-emerald-900 border border-emerald-200'
+                  }`}>
+                    <Sparkles className="w-4 h-4 shrink-0 text-emerald-600" />
+                    <span>{quotaInfo.message}</span>
+                  </div>
+                )}
               </div>
 
               {/* Title */}

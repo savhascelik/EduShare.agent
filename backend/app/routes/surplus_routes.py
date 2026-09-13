@@ -1,23 +1,94 @@
 import os
 import uuid
 import asyncio
+import logging
 from typing import List, Optional
-from fastapi import APIRouter, Depends, HTTPException, UploadFile, File, Form, status
+from fastapi import APIRouter, Depends, HTTPException, UploadFile, File, Form, Request, status
 from sqlalchemy.orm import Session
 from app.database import get_db
 from app.models import School, SurplusItem, AgentTask, StockLedger
-from app.schemas import SurplusItemCreate, SurplusItemResponse, VisionAnalyzeResponse
+from app.schemas import SurplusItemCreate, SurplusItemResponse, VisionAnalyzeResponse, QuotaStatusResponse
 from app.auth import get_current_school, get_optional_current_school
 from app.vision import analyze_surplus_image
 from app.worker import process_single_task
 from app.config import settings
+from app.security_guard import shield
+
+logger = logging.getLogger(__name__)
 
 router = APIRouter(prefix="/api/surplus", tags=["Surplus Items"])
 
+def get_client_ip(request: Request) -> str:
+    forwarded = request.headers.get("x-forwarded-for")
+    if forwarded:
+        return forwarded.split(",")[0].strip()
+    return request.client.host if request.client else "127.0.0.1"
+
+@router.get("/quota", response_model=QuotaStatusResponse)
+async def get_current_quota(
+    request: Request,
+    current_school: Optional[School] = Depends(get_optional_current_school)
+):
+    """
+    Returns current AI usage, remaining credits for the school (or guest IP), and global status.
+    """
+    client_ip = get_client_ip(request)
+    school_id = current_school.id if current_school else None
+    status_data = shield.get_quota_status(school_id, client_ip)
+    return QuotaStatusResponse(**status_data)
+
 @router.post("/analyze-image", response_model=VisionAnalyzeResponse)
 async def analyze_photo(
-    file: UploadFile = File(...)
+    request: Request,
+    file: UploadFile = File(...),
+    current_school: Optional[School] = Depends(get_optional_current_school)
 ):
+    """
+    Protected Multimodal Visual Analysis with:
+    1. Sliding-window IP Rate Limiting (max 5 requests/min)
+    2. Max 4MB File Size Enforcement
+    3. In-memory SHA-256 Image Hash Cache (0 cost, 0 credits on cache hits)
+    4. Per-School Daily 50 Credit Limit & Global 300 Hard Cap Circuit Breaker
+    """
+    client_ip = get_client_ip(request)
+    school_id = current_school.id if current_school else None
+
+    # 1. Enforce IP Rate Limiting (anti-spam)
+    shield.check_rate_limit(client_ip)
+
+    # 2. Enforce File Size Ceiling
+    contents = await file.read()
+    shield.check_file_size(contents)
+
+    # 3. Check SHA-256 Hash Cache
+    image_hash = shield.compute_image_hash(contents)
+    cached_result = shield.get_cached_result(image_hash)
+
+    if cached_result:
+        remaining, limit, msg = shield.consume_quota(school_id, client_ip, is_cache_hit=True)
+        return VisionAnalyzeResponse(
+            **cached_result,
+            quota_remaining=remaining,
+            quota_total=limit,
+            is_cached=True,
+            quota_message=msg
+        )
+
+    # 4. Pre-check quota before contacting AWS Bedrock
+    status_data = shield.get_quota_status(school_id, client_ip)
+    if status_data["remaining"] <= 0:
+        if school_id:
+            raise HTTPException(
+                status_code=status.HTTP_429_TOO_MANY_REQUESTS,
+                detail=f"Okulunuzun günlük yapay zeka analiz kotası ({status_data['limit']}/{status_data['limit']}) dolmuştur. Kotanız yarın sıfırlanacaktır."
+            )
+        else:
+            raise HTTPException(
+                status_code=status.HTTP_429_TOO_MANY_REQUESTS,
+                detail=f"Misafir kullanıcı deneme kotası ({status_data['limit']}/{status_data['limit']}) dolmuştur. Lütfen okul hesabınızla giriş yapın."
+            )
+
+    # 5. Check AWS Bedrock credentials
     import boto3
     creds = boto3.Session().get_credentials()
     if not creds:
@@ -25,11 +96,21 @@ async def analyze_photo(
             status_code=status.HTTP_503_SERVICE_UNAVAILABLE,
             detail="AWS Bedrock credentials are not configured on the server."
         )
-    
-    contents = await file.read()
+
+    # 6. Execute Multimodal Analysis on Amazon Bedrock
     try:
         result = analyze_surplus_image(contents, file.content_type)
-        return VisionAnalyzeResponse(**result)
+        shield.store_cached_result(image_hash, result)
+        remaining, limit, msg = shield.consume_quota(school_id, client_ip, is_cache_hit=False)
+        return VisionAnalyzeResponse(
+            **result,
+            quota_remaining=remaining,
+            quota_total=limit,
+            is_cached=False,
+            quota_message=msg
+        )
+    except HTTPException:
+        raise
     except Exception as exc:
         logger.error(f"Bedrock visual analysis error: {exc}", exc_info=True)
         raise HTTPException(

@@ -33,7 +33,8 @@ export const api = {
   getMe: () => client.get('/auth/me').then((res) => res.data),
   updateProfile: (data) => client.put('/auth/profile', data).then((res) => res.data),
 
-  // Surplus
+  // Surplus & AI Vision Quota
+  getQuota: () => client.get('/surplus/quota').then((res) => res.data),
   getSurplus: (params) => client.get('/surplus', { params }).then((res) => res.data),
   createSurplus: (data) => client.post('/surplus', data).then((res) => res.data),
   analyzeImage: (file) => {
