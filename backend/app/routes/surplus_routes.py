@@ -18,15 +18,24 @@ router = APIRouter(prefix="/api/surplus", tags=["Surplus Items"])
 async def analyze_photo(
     file: UploadFile = File(...)
 ):
-    if not settings.AWS_ACCESS_KEY_ID or not settings.AWS_SECRET_ACCESS_KEY:
+    import boto3
+    creds = boto3.Session().get_credentials()
+    if not creds:
         raise HTTPException(
             status_code=status.HTTP_503_SERVICE_UNAVAILABLE,
             detail="AWS Bedrock credentials are not configured on the server."
         )
     
     contents = await file.read()
-    result = analyze_surplus_image(contents, file.content_type)
-    return VisionAnalyzeResponse(**result)
+    try:
+        result = analyze_surplus_image(contents, file.content_type)
+        return VisionAnalyzeResponse(**result)
+    except Exception as exc:
+        logger.error(f"Bedrock visual analysis error: {exc}", exc_info=True)
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail=f"Bedrock visual analysis failed: {str(exc)}"
+        )
 
 @router.post("", response_model=SurplusItemResponse)
 async def create_surplus_item(

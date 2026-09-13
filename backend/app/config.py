@@ -20,6 +20,8 @@ class Settings(BaseSettings):
     
     # AWS Bedrock
     AWS_REGION: str = os.getenv("AWS_DEFAULT_REGION", os.getenv("AWS_REGION", "us-east-1"))
+    AWS_ACCESS_KEY_ID: str | None = os.getenv("AWS_ACCESS_KEY_ID", None)
+    AWS_SECRET_ACCESS_KEY: str | None = os.getenv("AWS_SECRET_ACCESS_KEY", None)
     # Default to AWS Nova Pro (supports vision & reasoning with fast response)
     BEDROCK_MODEL_ID: str = os.getenv("BEDROCK_MODEL_ID", "us.amazon.nova-pro-v1:0")
     

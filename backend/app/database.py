@@ -31,45 +31,28 @@ Base = declarative_base()
 def run_migrations():
     """Ensures newly added columns and tables are safely migrated on both SQLite and PostgreSQL."""
     from sqlalchemy import text
-    try:
-        with engine.begin() as conn:
-            # 1. surplus_items.reserved_quantity
-            try:
-                conn.execute(text("SELECT reserved_quantity FROM surplus_items LIMIT 1"))
-            except Exception:
+    migrations = [
+        ("surplus_items", "allocated_quantity", "INTEGER DEFAULT 0"),
+        ("surplus_items", "reserved_quantity", "INTEGER DEFAULT 0"),
+        ("transfers", "protocol_code", "VARCHAR(64)"),
+        ("agent_tasks", "initiator_type", "VARCHAR DEFAULT 'AI'"),
+        ("agent_tasks", "initiator_school_id", "VARCHAR"),
+        ("agent_tasks", "target_school_id", "VARCHAR"),
+    ]
+    for table, col, col_type in migrations:
+        try:
+            with engine.begin() as conn:
                 try:
-                    conn.execute(text("ALTER TABLE surplus_items ADD COLUMN reserved_quantity INTEGER DEFAULT 0"))
-                except Exception as e:
-                    logger.debug(f"Migration note (surplus_items.reserved_quantity): {e}")
-
-            # 2. agent_tasks.initiator_type
+                    conn.execute(text(f"SELECT {col} FROM {table} LIMIT 1"))
+                except Exception:
+                    pass
+        except Exception:
             try:
-                conn.execute(text("SELECT initiator_type FROM agent_tasks LIMIT 1"))
-            except Exception:
-                try:
-                    conn.execute(text("ALTER TABLE agent_tasks ADD COLUMN initiator_type VARCHAR DEFAULT 'AI'"))
-                except Exception as e:
-                    logger.debug(f"Migration note (agent_tasks.initiator_type): {e}")
-
-            # 3. agent_tasks.initiator_school_id
-            try:
-                conn.execute(text("SELECT initiator_school_id FROM agent_tasks LIMIT 1"))
-            except Exception:
-                try:
-                    conn.execute(text("ALTER TABLE agent_tasks ADD COLUMN initiator_school_id VARCHAR"))
-                except Exception as e:
-                    logger.debug(f"Migration note (agent_tasks.initiator_school_id): {e}")
-
-            # 4. agent_tasks.target_school_id
-            try:
-                conn.execute(text("SELECT target_school_id FROM agent_tasks LIMIT 1"))
-            except Exception:
-                try:
-                    conn.execute(text("ALTER TABLE agent_tasks ADD COLUMN target_school_id VARCHAR"))
-                except Exception as e:
-                    logger.debug(f"Migration note (agent_tasks.target_school_id): {e}")
-    except Exception as exc:
-        logger.warning(f"Schema migration skipped or completed: {exc}")
+                with engine.begin() as conn:
+                    conn.execute(text(f"ALTER TABLE {table} ADD COLUMN {col} {col_type}"))
+                    logger.info(f"Successfully added column {table}.{col}")
+            except Exception as e:
+                logger.debug(f"Migration note ({table}.{col}): {e}")
 
 # Run migrations automatically
 run_migrations()
