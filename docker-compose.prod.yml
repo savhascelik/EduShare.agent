@@ -27,10 +27,11 @@ services:
       postgres:
         condition: service_healthy
     environment:
-      DATABASE_URL: postgresql://edushare_user:edushare_password@postgres:5432/edushare_db
+      DATABASE_URL: ${DATABASE_URL:-postgresql://edushare_user:edushare_password@postgres:5432/edushare_db}
       AWS_DEFAULT_REGION: ${AWS_DEFAULT_REGION:-us-east-1}
-      AWS_ACCESS_KEY_ID: ${AWS_ACCESS_KEY_ID}
-      AWS_SECRET_ACCESS_KEY: ${AWS_SECRET_ACCESS_KEY}
+      AWS_ACCESS_KEY_ID: ${AWS_ACCESS_KEY_ID:-}
+      AWS_SECRET_ACCESS_KEY: ${AWS_SECRET_ACCESS_KEY:-}
+      BEDROCK_MODEL_ID: ${BEDROCK_MODEL_ID:-us.amazon.nova-pro-v1:0}
       JWT_SECRET: ${JWT_SECRET:-edushare_super_secret_jwt_key_2026}
     ports:
       - "8000:8000"
