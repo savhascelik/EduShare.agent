@@ -113,7 +113,21 @@
     "footerNote": "Human-in-the-Loop İlkesi: Hiçbir transfer okul müdürünün onayı olmadan gerçekleştirilmez.",
     "bannerTitle": "Müdür Onayı Bekleniyor:",
     "bannerText": "EduShare Ajanı {{count}} adet yeni lojistik eşleşme hazırladı. Kararı onaylamak için inceleyin.",
-    "reviewDecisions": "Kararları İncele"
+    "reviewDecisions": "Kararları İncele",
+    "authRequiredTitle": "Müdürlük Yetkilendirmesi Gerekli",
+    "authRequiredDesc": "Agent Karar Merkezi (HITL) devir ve talep onayları yalnızca T.C. Millî Eğitim Bakanlığı yetkili okul yöneticileri tarafından görüntülenebilir ve onaylanabilir.",
+    "loginButton": "Okul Müdürlüğü ile Giriş Yap",
+    "stageRecipientProposal": "🎯 YZ Eşleşme Önerisi",
+    "stageRecipientInfo": "Yapay zeka ajanı, okulunuzun acil ihtiyacı için {{school}} envanterinde uygun malzeme buldu. Resmi devir sürecini başlatmak için talep gönderin.",
+    "stageRecipientRequested": "⏳ Talep İletildi • Sevk İzni Bekleniyor (Rezerve)",
+    "stageRecipientWaitingInfo": "{{school}} müdürlüğüne resmi devir talebiniz iletildi. Okulun sevk onayı bekleniyor. Malzeme sizin için rezerve edildi.",
+    "stageDonorPendingApproval": "📦 Gelen Malzeme Talebi",
+    "stageDonorInfo": "{{school}} müdürlüğü envanterinizdeki malzemeyi resmi olarak talep etti. Resmi MEB devir protokolünü ve sevkiyatı onaylıyor musunuz?",
+    "stageWaitingRecipient": "⏳ Alıcı Okul Talebi Bekleniyor",
+    "stageWaitingRecipientInfo": "Yapay zeka eşleştirmesi ihtiyaç sahibi okulun ({{school}}) resmi talep oluşturması için bekliyor.",
+    "sendFormalRequestBtn": "📋 Resmi Talep Gönder",
+    "authorizeDispatchBtn": "🚚 Sevkiyatı Onayla ve Sevk Et",
+    "requestSentSuccess": "Resmi talep devreden okul müdürlüğüne başarıyla iletildi."
   },
   "surplus": {
     "modalTitle": "Fazla Eşya Bildirimi",

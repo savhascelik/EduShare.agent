@@ -71,7 +71,7 @@ function MainApp() {
 
   useEffect(() => {
     loadDashboardData();
-  }, [loadDashboardData]);
+  }, [loadDashboardData, isAuthenticated]);
 
   // Subscribe to real-time events
   useEffect(() => {
@@ -87,9 +87,21 @@ function MainApp() {
     return unsubscribe;
   }, [subscribe, loadDashboardData]);
 
-  const pendingApprovalsCount = tasks.filter(
-    (tItem) => tItem.status === 'AWAITING_HUMAN_APPROVAL'
-  ).length;
+  const pendingApprovalsCount = !isAuthenticated ? 0 : tasks.filter((tItem) => {
+    if (!['PENDING_RECIPIENT_REQUEST', 'AWAITING_DONOR_APPROVAL', 'AWAITING_HUMAN_APPROVAL'].includes(tItem.status)) {
+      return false;
+    }
+    const card = tItem.match_payload || {};
+    // If recipient request stage, count only if logged in as recipient
+    if (tItem.status === 'PENDING_RECIPIENT_REQUEST' || card.approval_stage === 'RECIPIENT_REQUEST') {
+      return card.to_school_id === currentSchool?.id;
+    }
+    // If donor approval stage, count only if logged in as donor
+    if (tItem.status === 'AWAITING_DONOR_APPROVAL' || card.approval_stage === 'DONOR_APPROVAL') {
+      return card.from_school_id === currentSchool?.id;
+    }
+    return card.from_school_id === currentSchool?.id || card.to_school_id === currentSchool?.id;
+  }).length;
 
   return (
     <div className="min-h-screen bg-[#FDFBF7] text-slate-900 font-sans flex flex-col selection:bg-amber-100 selection:text-amber-900">
@@ -195,6 +207,7 @@ function MainApp() {
         onClose={() => setIsHITLOpen(false)}
         tasks={tasks}
         onTaskProcessed={() => loadDashboardData()}
+        onRequireAuth={() => setIsAuthOpen(true)}
       />
 
       <SurplusModal

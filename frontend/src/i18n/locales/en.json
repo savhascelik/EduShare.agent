@@ -113,7 +113,21 @@
     "footerNote": "Human-in-the-Loop Principle: No equipment transfer is executed without explicit principal approval.",
     "bannerTitle": "Principal Approval Required:",
     "bannerText": "EduShare Agent formulated {{count}} new logistical matches. Review now to approve transfers.",
-    "reviewDecisions": "Review Decisions"
+    "reviewDecisions": "Review Decisions",
+    "authRequiredTitle": "Principal Login Required",
+    "authRequiredDesc": "Agent Decision Center (HITL) transfer and proposal actions can only be accessed and authorized by verified school principals.",
+    "loginButton": "Login as School Principal",
+    "stageRecipientProposal": "🎯 AI Match Proposal",
+    "stageRecipientInfo": "The AI agent identified surplus items in {{school}} inventory matching your urgent need. Submit a formal request to begin the transfer.",
+    "stageRecipientRequested": "⏳ Request Dispatched • Awaiting Dispatch Approval (Reserved)",
+    "stageRecipientWaitingInfo": "Your formal transfer request was sent to {{school}}. Awaiting donor principal's dispatch approval. Equipment is reserved.",
+    "stageDonorPendingApproval": "📦 Inbound Equipment Request",
+    "stageDonorInfo": "{{school}} principal formally requested equipment from your inventory. Do you authorize dispatch and the official transfer protocol?",
+    "stageWaitingRecipient": "⏳ Awaiting Recipient Request",
+    "stageWaitingRecipientInfo": "AI proposal is waiting for recipient school ({{school}}) to submit formal transfer request.",
+    "sendFormalRequestBtn": "📋 Send Formal Request",
+    "authorizeDispatchBtn": "🚚 Authorize Dispatch & Transfer",
+    "requestSentSuccess": "Formal transfer request has been dispatched to donor school."
   },
   "surplus": {
     "modalTitle": "Report Surplus Equipment",

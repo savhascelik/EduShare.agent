@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { X, CheckCircle, XCircle, Sparkles, ArrowRight, ShieldCheck, Coins, Leaf, MapPin, Loader2, FileText } from 'lucide-react';
+import { X, CheckCircle, XCircle, Sparkles, ArrowRight, ShieldCheck, Coins, Leaf, MapPin, Loader2, Lock, LogIn } from 'lucide-react';
 import { useTranslation } from 'react-i18next';
 import { useAuth } from '../context/AuthContext';
 import { cleanItemTitle } from '../utils/formatters';
@@ -10,10 +10,11 @@ export const HITLDrawer = ({
   isOpen,
   onClose,
   tasks = [],
-  onTaskProcessed
+  onTaskProcessed,
+  onRequireAuth
 }) => {
   const { t, i18n } = useTranslation();
-  const { user: currentSchool } = useAuth();
+  const { currentSchool, isAuthenticated } = useAuth();
   const locale = i18n.language?.startsWith('en') ? 'en-US' : 'tr-TR';
   const currencySymbol = '₺';
 
@@ -31,10 +32,10 @@ export const HITLDrawer = ({
         setApprovedProtocols(prev => ({ ...prev, [taskId]: protocol }));
       }
       setTimeout(() => {
-        onTaskProcessed && onTaskProcessed(taskId, 'APPROVED');
-      }, 1500);
+        onTaskProcessed && onTaskProcessed(taskId, res?.stage || 'APPROVED');
+      }, 1200);
     } catch (err) {
-      setError(err?.response?.data?.detail || 'Approval failed.');
+      setError(err?.response?.data?.detail || 'İşlem başarısız oldu.');
     } finally {
       setProcessingId(null);
     }
@@ -47,7 +48,7 @@ export const HITLDrawer = ({
       await api.rejectTask(taskId);
       onTaskProcessed && onTaskProcessed(taskId, 'REJECTED');
     } catch (err) {
-      setError(err?.response?.data?.detail || 'Rejection failed.');
+      setError(err?.response?.data?.detail || 'Reddetme işlemi başarısız oldu.');
     } finally {
       setProcessingId(null);
     }
@@ -60,13 +61,15 @@ export const HITLDrawer = ({
       await api.withdrawTask(taskId);
       onTaskProcessed && onTaskProcessed(taskId, 'WITHDRAWN');
     } catch (err) {
-      setError(err?.response?.data?.detail || 'Withdrawal failed.');
+      setError(err?.response?.data?.detail || 'Geri çekme işlemi başarısız oldu.');
     } finally {
       setProcessingId(null);
     }
   };
 
-  const pendingTasks = tasks.filter((tItem) => tItem.status === 'AWAITING_HUMAN_APPROVAL');
+  const pendingTasks = tasks.filter((tItem) =>
+    ['PENDING_RECIPIENT_REQUEST', 'AWAITING_DONOR_APPROVAL', 'AWAITING_HUMAN_APPROVAL'].includes(tItem.status)
+  );
 
   return (
     <AnimatePresence>
@@ -100,13 +103,13 @@ export const HITLDrawer = ({
                     {t('hitl.title')}
                   </h3>
                   <p className="text-xs text-slate-500 font-medium">
-                    {t('hitl.subtitle')} ({pendingTasks.length})
+                    {t('hitl.subtitle')} {isAuthenticated ? `(${pendingTasks.length})` : ''}
                   </p>
                 </div>
               </div>
               <button
                 onClick={onClose}
-                className="p-2 text-slate-400 hover:text-slate-700 hover:bg-slate-100 rounded-xl transition-colors"
+                className="p-2 text-slate-400 hover:text-slate-700 hover:bg-slate-100 rounded-xl transition-colors cursor-pointer"
               >
                 <X className="w-5 h-5" />
               </button>
@@ -119,9 +122,33 @@ export const HITLDrawer = ({
               </div>
             )}
 
-            {/* Body Cards List */}
+            {/* Body */}
             <div className="flex-1 overflow-y-auto p-6 space-y-5">
-              {pendingTasks.length === 0 ? (
+              {!isAuthenticated ? (
+                /* Unauthenticated Guard Panel */
+                <div className="text-center py-16 px-4">
+                  <div className="w-16 h-16 mx-auto rounded-2xl bg-amber-100 text-amber-700 flex items-center justify-center mb-4 shadow-inner">
+                    <Lock className="w-8 h-8" />
+                  </div>
+                  <h4 className="font-bold text-slate-800 text-base mb-1">
+                    {t('hitl.authRequiredTitle')}
+                  </h4>
+                  <p className="text-xs text-slate-500 max-w-sm mx-auto mb-6 leading-relaxed">
+                    {t('hitl.authRequiredDesc')}
+                  </p>
+                  <button
+                    onClick={() => {
+                      onClose();
+                      onRequireAuth && onRequireAuth();
+                    }}
+                    className="inline-flex items-center space-x-2 px-5 py-2.5 rounded-xl bg-blue-600 hover:bg-blue-700 text-white text-xs font-bold transition shadow-sm cursor-pointer"
+                  >
+                    <LogIn className="w-4 h-4" />
+                    <span>{t('hitl.loginButton')}</span>
+                  </button>
+                </div>
+              ) : pendingTasks.length === 0 ? (
+                /* Empty Pending State */
                 <div className="text-center py-16 px-4">
                   <div className="w-16 h-16 mx-auto rounded-2xl bg-slate-100 text-slate-400 flex items-center justify-center mb-4">
                     <CheckCircle className="w-8 h-8 text-emerald-500" />
@@ -134,6 +161,7 @@ export const HITLDrawer = ({
                   </p>
                 </div>
               ) : (
+                /* Task Cards */
                 pendingTasks.map((task) => {
                   const card = task.match_payload || {};
                   const isProcessing = processingId === task.id;
@@ -142,6 +170,9 @@ export const HITLDrawer = ({
                   const isRecipient = currentSchool && card.to_school_id === currentSchool.id;
                   const isDonor = currentSchool && card.from_school_id === currentSchool.id;
                   const isInitiator = currentSchool && task.initiator_school_id === currentSchool.id;
+
+                  const isPhase1 = task.status === 'PENDING_RECIPIENT_REQUEST' || card.approval_stage === 'RECIPIENT_REQUEST';
+                  const isPhase2 = task.status === 'AWAITING_DONOR_APPROVAL' || card.approval_stage === 'DONOR_APPROVAL';
 
                   const initiatorType = task.initiator_type || card.initiator_type || 'AI';
                   const initiatorBadge = initiatorType === 'SCHOOL_RECIPIENT' ? (
@@ -173,12 +204,6 @@ export const HITLDrawer = ({
                     </span>
                   );
 
-                  const approveBtnLabel = isRecipient
-                    ? t('hitl.approveReceiveBtn')
-                    : isDonor
-                    ? t('hitl.approveDispatchBtn')
-                    : t('hitl.approveBtn');
-
                   return (
                     <div
                       key={task.id}
@@ -199,6 +224,49 @@ export const HITLDrawer = ({
                           {card.quantity} {t('hero.units.items')}
                         </span>
                       </div>
+
+                      {/* Bilateral Handshake Stage Notice Box */}
+                      {isPhase1 ? (
+                        isRecipient ? (
+                          <div className="p-3 bg-blue-50 border border-blue-200 rounded-xl text-xs text-blue-900 space-y-1">
+                            <div className="font-bold flex items-center space-x-1.5 text-blue-800">
+                              <span>{t('hitl.stageRecipientProposal')}</span>
+                            </div>
+                            <p className="text-[11px] text-blue-700 leading-relaxed font-normal">
+                              {t('hitl.stageRecipientInfo', { school: card.from_school_name })}
+                            </p>
+                          </div>
+                        ) : isDonor ? (
+                          <div className="p-3 bg-slate-100/90 border border-slate-200 rounded-xl text-xs text-slate-700 space-y-1">
+                            <div className="font-bold flex items-center space-x-1.5 text-slate-800">
+                              <span>{t('hitl.stageWaitingRecipient')}</span>
+                            </div>
+                            <p className="text-[11px] text-slate-600 font-normal">
+                              {t('hitl.stageWaitingRecipientInfo', { school: card.to_school_name })}
+                            </p>
+                          </div>
+                        ) : null
+                      ) : isPhase2 ? (
+                        isDonor ? (
+                          <div className="p-3 bg-amber-100/80 border border-amber-300 rounded-xl text-xs text-amber-950 space-y-1">
+                            <div className="font-bold flex items-center space-x-1.5 text-amber-900">
+                              <span>{t('hitl.stageDonorPendingApproval')}</span>
+                            </div>
+                            <p className="text-[11px] text-amber-800 leading-relaxed font-normal">
+                              {t('hitl.stageDonorInfo', { school: card.to_school_name })}
+                            </p>
+                          </div>
+                        ) : isRecipient ? (
+                          <div className="p-3 bg-emerald-50 border border-emerald-200 rounded-xl text-xs text-emerald-950 space-y-1">
+                            <div className="font-bold flex items-center space-x-1.5 text-emerald-900">
+                              <span>{t('hitl.stageRecipientRequested')}</span>
+                            </div>
+                            <p className="text-[11px] text-emerald-800 font-normal">
+                              {t('hitl.stageRecipientWaitingInfo', { school: card.from_school_name })}
+                            </p>
+                          </div>
+                        ) : null
+                      ) : null}
 
                       {/* Adaptive Stock Warning if stock was reduced */}
                       {card.stock_adjusted && (
@@ -277,42 +345,114 @@ export const HITLDrawer = ({
                         </div>
                       )}
 
-                      {/* Action Buttons: If user school initiated the proposal, they can withdraw it! */}
+                      {/* Bilateral Action Buttons */}
                       {!protocolCode && (
-                        isInitiator ? (
-                          <div className="pt-2">
-                            <button
-                              onClick={() => handleWithdraw(task.id)}
-                              disabled={isProcessing}
-                              className="w-full flex items-center justify-center space-x-1.5 py-2.5 px-3 rounded-xl border border-rose-300 bg-rose-50 hover:bg-rose-100 text-rose-700 text-xs font-bold transition-all disabled:opacity-50"
-                            >
-                              <XCircle className="w-4 h-4 text-rose-500" />
-                              <span>{isProcessing ? t('hitl.withdrawing') : t('hitl.withdrawBtn')}</span>
-                            </button>
-                          </div>
+                        isPhase1 ? (
+                          isRecipient ? (
+                            /* Phase 1 - Recipient Action */
+                            <div className="grid grid-cols-2 gap-3 pt-2">
+                              <button
+                                onClick={() => handleReject(task.id)}
+                                disabled={isProcessing}
+                                className="flex items-center justify-center space-x-1.5 py-2.5 px-3 rounded-xl border border-slate-300 bg-white hover:bg-slate-50 text-slate-700 text-xs font-bold transition-all disabled:opacity-50 cursor-pointer"
+                              >
+                                <XCircle className="w-4 h-4 text-slate-400" />
+                                <span>{t('hitl.rejectBtn')}</span>
+                              </button>
+                              <button
+                                onClick={() => handleApprove(task.id)}
+                                disabled={isProcessing}
+                                className="flex items-center justify-center space-x-1.5 py-2.5 px-3 rounded-xl bg-blue-600 hover:bg-blue-700 text-white text-xs font-bold transition-all shadow-sm shadow-blue-600/30 disabled:opacity-50 cursor-pointer"
+                              >
+                                {isProcessing ? (
+                                  <Loader2 className="w-4 h-4 animate-spin" />
+                                ) : (
+                                  <CheckCircle className="w-4 h-4 text-blue-200" />
+                                )}
+                                <span>{t('hitl.sendFormalRequestBtn')}</span>
+                              </button>
+                            </div>
+                          ) : isDonor ? (
+                            /* Phase 1 - Donor View (Waiting on recipient) */
+                            <div className="p-2.5 bg-slate-50 rounded-xl text-center text-xs text-slate-500 font-medium border border-slate-200">
+                              {t('hitl.stageWaitingRecipient')}
+                            </div>
+                          ) : null
+                        ) : isPhase2 ? (
+                          isDonor ? (
+                            /* Phase 2 - Donor Action (Authorize dispatch) */
+                            <div className="grid grid-cols-2 gap-3 pt-2">
+                              <button
+                                onClick={() => handleReject(task.id)}
+                                disabled={isProcessing}
+                                className="flex items-center justify-center space-x-1.5 py-2.5 px-3 rounded-xl border border-slate-300 bg-white hover:bg-slate-50 text-slate-700 text-xs font-bold transition-all disabled:opacity-50 cursor-pointer"
+                              >
+                                <XCircle className="w-4 h-4 text-slate-400" />
+                                <span>{t('hitl.rejectBtn')}</span>
+                              </button>
+                              <button
+                                onClick={() => handleApprove(task.id)}
+                                disabled={isProcessing}
+                                className="flex items-center justify-center space-x-1.5 py-2.5 px-3 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white text-xs font-bold transition-all shadow-sm shadow-emerald-600/30 disabled:opacity-50 cursor-pointer"
+                              >
+                                {isProcessing ? (
+                                  <Loader2 className="w-4 h-4 animate-spin" />
+                                ) : (
+                                  <CheckCircle className="w-4 h-4 text-emerald-200" />
+                                )}
+                                <span>{t('hitl.authorizeDispatchBtn')}</span>
+                              </button>
+                            </div>
+                          ) : isRecipient ? (
+                            /* Phase 2 - Recipient View (Can withdraw request if needed) */
+                            <div className="pt-2">
+                              <button
+                                onClick={() => handleWithdraw(task.id)}
+                                disabled={isProcessing}
+                                className="w-full flex items-center justify-center space-x-1.5 py-2.5 px-3 rounded-xl border border-rose-300 bg-rose-50 hover:bg-rose-100 text-rose-700 text-xs font-bold transition-all disabled:opacity-50 cursor-pointer"
+                              >
+                                <XCircle className="w-4 h-4 text-rose-500" />
+                                <span>{isProcessing ? t('hitl.withdrawing') : t('hitl.withdrawBtn')}</span>
+                              </button>
+                            </div>
+                          ) : null
                         ) : (
-                          <div className="grid grid-cols-2 gap-3 pt-2">
-                            <button
-                              onClick={() => handleReject(task.id)}
-                              disabled={isProcessing}
-                              className="flex items-center justify-center space-x-1.5 py-2.5 px-3 rounded-xl border border-slate-300 bg-white hover:bg-slate-50 text-slate-700 text-xs font-bold transition-all disabled:opacity-50"
-                            >
-                              <XCircle className="w-4 h-4 text-slate-400" />
-                              <span>{t('hitl.rejectBtn')}</span>
-                            </button>
-                            <button
-                              onClick={() => handleApprove(task.id)}
-                              disabled={isProcessing}
-                              className="flex items-center justify-center space-x-1.5 py-2.5 px-3 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white text-xs font-bold transition-all shadow-sm shadow-emerald-600/30 disabled:opacity-50"
-                            >
-                              {isProcessing ? (
-                                <Loader2 className="w-4 h-4 animate-spin" />
-                              ) : (
-                                <CheckCircle className="w-4 h-4 text-emerald-200" />
-                              )}
-                              <span>{approveBtnLabel}</span>
-                            </button>
-                          </div>
+                          /* Legacy Fallback */
+                          isInitiator ? (
+                            <div className="pt-2">
+                              <button
+                                onClick={() => handleWithdraw(task.id)}
+                                disabled={isProcessing}
+                                className="w-full flex items-center justify-center space-x-1.5 py-2.5 px-3 rounded-xl border border-rose-300 bg-rose-50 hover:bg-rose-100 text-rose-700 text-xs font-bold transition-all disabled:opacity-50 cursor-pointer"
+                              >
+                                <XCircle className="w-4 h-4 text-rose-500" />
+                                <span>{isProcessing ? t('hitl.withdrawing') : t('hitl.withdrawBtn')}</span>
+                              </button>
+                            </div>
+                          ) : (
+                            <div className="grid grid-cols-2 gap-3 pt-2">
+                              <button
+                                onClick={() => handleReject(task.id)}
+                                disabled={isProcessing}
+                                className="flex items-center justify-center space-x-1.5 py-2.5 px-3 rounded-xl border border-slate-300 bg-white hover:bg-slate-50 text-slate-700 text-xs font-bold transition-all disabled:opacity-50 cursor-pointer"
+                              >
+                                <XCircle className="w-4 h-4 text-slate-400" />
+                                <span>{t('hitl.rejectBtn')}</span>
+                              </button>
+                              <button
+                                onClick={() => handleApprove(task.id)}
+                                disabled={isProcessing}
+                                className="flex items-center justify-center space-x-1.5 py-2.5 px-3 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white text-xs font-bold transition-all shadow-sm shadow-emerald-600/30 disabled:opacity-50 cursor-pointer"
+                              >
+                                {isProcessing ? (
+                                  <Loader2 className="w-4 h-4 animate-spin" />
+                                ) : (
+                                  <CheckCircle className="w-4 h-4 text-emerald-200" />
+                                )}
+                                <span>{t('hitl.approveBtn')}</span>
+                              </button>
+                            </div>
+                          )
                         )
                       )}
 
@@ -332,3 +472,5 @@ export const HITLDrawer = ({
     </AnimatePresence>
   );
 };
+export default HITLDrawer;
+
