@@ -1,7 +1,10 @@
 import asyncio
+import random
+import string
 from typing import List, Optional
 from fastapi import APIRouter, Depends, HTTPException, status
 from sqlalchemy.orm import Session
+from sqlalchemy.orm.attributes import flag_modified
 from app.database import get_db
 from app.models import School, SurplusItem, NeedRequest, AgentTask, Transfer
 from app.schemas import AgentTaskResponse, HITLApprovalAction, TransferResponse
@@ -72,16 +75,67 @@ async def approve_transfer_task(
     co2_kg = payload.get("prevented_co2_kg", 0.0)
     item_title = payload.get("item_title", "Eğitim Malzemesi")
 
-    # Update Surplus Item
+    transfer_quantity = int(quantity) if quantity else 1
+    remaining_stock = 0
+
+    # 1. Update Surplus Item with dynamic partial stock deduction (Task 2)
     surplus = db.query(SurplusItem).filter(SurplusItem.id == surplus_id).first()
     if surplus:
-        surplus.status = "TRANSFERRED"
+        surplus.allocated_quantity = (surplus.allocated_quantity or 0) + transfer_quantity
+        surplus.quantity = max(0, surplus.quantity - transfer_quantity)
+        remaining_stock = surplus.quantity
+        if surplus.quantity == 0:
+            surplus.status = "TRANSFERRED"
+        else:
+            surplus.status = "AVAILABLE"  # Remains in pool for future matching!
     
-    # Update Need Request
+    # 2. Update Need Request with partial fulfillment (Task 2)
     if need_id:
         need = db.query(NeedRequest).filter(NeedRequest.id == need_id).first()
         if need:
-            need.status = "FULFILLED"
+            need.quantity_needed = max(0, need.quantity_needed - transfer_quantity)
+            if need.quantity_needed == 0:
+                need.status = "FULFILLED"
+            else:
+                need.status = "OPEN"  # Partially fulfilled, remains open for the rest
+
+    # 3. Concurrency & Auto-Supersede Sibling Pending AI Proposals (Task 3)
+    sibling_tasks = db.query(AgentTask).filter(
+        AgentTask.id != task.id,
+        AgentTask.status == "AWAITING_HUMAN_APPROVAL"
+    ).all()
+
+    superseded_task_ids = []
+    for s_task in sibling_tasks:
+        s_payload = s_task.match_payload or {}
+        if s_payload.get("surplus_item_id") == surplus_id:
+            s_req_qty = s_payload.get("quantity", 1)
+            if remaining_stock < s_req_qty:
+                if remaining_stock == 0:
+                    s_task.status = "SUPERSEDED"
+                    s_payload["superseded_reason"] = "STOCK_DEPLETED"
+                    s_task.match_payload = dict(s_payload)
+                    flag_modified(s_task, "match_payload")
+                    superseded_task_ids.append(s_task.id)
+                    record_pulse_event(
+                        event_type="decision",
+                        step_key="task_superseded",
+                        params={
+                            "item": item_title,
+                            "reason": "depleted"
+                        },
+                        raw_text=f"Stok tükendiği için {s_task.id[:8]} nolu eşleşme önerisi otomatik arşivlendi."
+                    )
+                else:
+                    # Partial stock remaining: adapt proposal quantity to available stock
+                    s_payload["quantity"] = remaining_stock
+                    s_payload["stock_adjusted"] = True
+                    s_task.match_payload = dict(s_payload)
+                    flag_modified(s_task, "match_payload")
+
+    # 4. Generate Official MEB Protocol Code (Task 4)
+    protocol_suffix = ''.join(random.choices(string.ascii_uppercase + string.digits, k=6))
+    protocol_code = f"MEB-TR-2026-{protocol_suffix}"
 
     # Fetch school entities for transfer record
     from_school = db.query(School).filter(School.id == from_school_id).first()
@@ -94,9 +148,10 @@ async def approve_transfer_task(
         from_school_id=from_school_id,
         to_school_id=to_school_id,
         item_summary=item_title,
-        quantity=quantity,
+        quantity=transfer_quantity,
         estimated_savings_tl=savings_tl,
         prevented_co2_kg=co2_kg,
+        protocol_code=protocol_code,
         status="APPROVED"
     )
     db.add(transfer)
@@ -119,12 +174,20 @@ async def approve_transfer_task(
         "to_lat": to_school.latitude if to_school else 0.0,
         "to_lng": to_school.longitude if to_school else 0.0,
         "item_summary": item_title,
-        "quantity": quantity,
+        "quantity": transfer_quantity,
+        "remaining_stock": remaining_stock,
+        "protocol_code": protocol_code,
         "estimated_savings_tl": savings_tl,
         "prevented_co2_kg": co2_kg,
         "transferred_at": transfer.transferred_at.isoformat()
     }
     await sse_manager.broadcast("TRANSFER_APPROVED", transfer_data)
+
+    if superseded_task_ids:
+        await sse_manager.broadcast("TASK_SUPERSEDED", {
+            "task_ids": superseded_task_ids,
+            "reason": "STOCK_DEPLETED"
+        })
 
     record_pulse_event(
         event_type="success",
@@ -134,9 +197,10 @@ async def approve_transfer_task(
             "from_school": from_school.name if from_school else "",
             "to_school": to_school.name if to_school else "",
             "savings_tl": savings_tl,
-            "co2_kg": co2_kg
+            "co2_kg": co2_kg,
+            "protocol_code": protocol_code
         },
-        raw_text=f"Principal approved transfer: {item_title} ({from_school.name if from_school else ''} -> {to_school.name if to_school else ''})."
+        raw_text=f"Principal approved transfer ({protocol_code}): {item_title} ({from_school.name if from_school else ''} -> {to_school.name if to_school else ''}). Remaining stock: {remaining_stock}."
     )
 
     return {

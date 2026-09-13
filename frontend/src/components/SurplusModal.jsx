@@ -24,7 +24,7 @@ export const SurplusModal = ({
 
   // Form Fields
   const [title, setTitle] = useState('');
-  const [itemCategory, setItemCategory] = useState('Bilişim & Bilgisayar');
+  const [itemCategory, setItemCategory] = useState('');
   const [quantity, setQuantity] = useState(1);
   const [conditionRating, setConditionRating] = useState('İyi');
   const [estimatedUnitValue, setEstimatedUnitValue] = useState(1500);
@@ -90,6 +90,11 @@ export const SurplusModal = ({
       return;
     }
 
+    if (!itemCategory) {
+      setError(t('surplus.selectCategoryError'));
+      return;
+    }
+
     setSubmitting(true);
     setError(null);
 
@@ -118,6 +123,7 @@ export const SurplusModal = ({
     setImageFile(null);
     setImagePreview(null);
     setTitle('');
+    setItemCategory('');
     setRawText('');
     setQuantity(1);
     setEstimatedUnitValue(1500);
@@ -253,13 +259,17 @@ export const SurplusModal = ({
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                 <div>
                   <label className="block text-xs font-bold text-slate-700 uppercase mb-1">
-                    {t('surplus.category')}
+                    {t('surplus.category')} *
                   </label>
                   <select
+                    required
                     value={itemCategory}
                     onChange={(e) => setItemCategory(e.target.value)}
                     className="w-full px-3.5 py-2.5 rounded-xl border border-slate-300 bg-white text-sm font-medium focus:outline-none focus:ring-2 focus:ring-emerald-500"
                   >
+                    <option value="" disabled>
+                      {t('surplus.selectCategoryPlaceholder')}
+                    </option>
                     {categoryOptions.map((c) => (
                       <option key={c.value} value={c.value}>{c.label}</option>
                     ))}

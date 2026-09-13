@@ -1,7 +1,8 @@
 import React, { useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { X, CheckCircle, XCircle, Sparkles, ArrowRight, ShieldCheck, Coins, Leaf, MapPin, Loader2 } from 'lucide-react';
+import { X, CheckCircle, XCircle, Sparkles, ArrowRight, ShieldCheck, Coins, Leaf, MapPin, Loader2, FileText } from 'lucide-react';
 import { useTranslation } from 'react-i18next';
+import { useAuth } from '../context/AuthContext';
 import api from '../services/api';
 
 export const HITLDrawer = ({
@@ -11,18 +12,26 @@ export const HITLDrawer = ({
   onTaskProcessed
 }) => {
   const { t, i18n } = useTranslation();
+  const { user: currentSchool } = useAuth();
   const locale = i18n.language?.startsWith('en') ? 'en-US' : 'tr-TR';
   const currencySymbol = i18n.language?.startsWith('en') ? '$' : '₺';
 
   const [processingId, setProcessingId] = useState(null);
   const [error, setError] = useState(null);
+  const [approvedProtocols, setApprovedProtocols] = useState({});
 
   const handleApprove = async (taskId) => {
     setProcessingId(taskId);
     setError(null);
     try {
-      await api.approveTask(taskId);
-      onTaskProcessed && onTaskProcessed(taskId, 'APPROVED');
+      const res = await api.approveTask(taskId);
+      const protocol = res?.transfer?.protocol_code;
+      if (protocol) {
+        setApprovedProtocols(prev => ({ ...prev, [taskId]: protocol }));
+      }
+      setTimeout(() => {
+        onTaskProcessed && onTaskProcessed(taskId, 'APPROVED');
+      }, 1500);
     } catch (err) {
       setError(err?.response?.data?.detail || 'Approval failed.');
     } finally {
@@ -114,20 +123,47 @@ export const HITLDrawer = ({
                 pendingTasks.map((task) => {
                   const card = task.match_payload || {};
                   const isProcessing = processingId === task.id;
+                  const protocolCode = approvedProtocols[task.id] || card.protocol_code;
+
+                  const isRecipient = currentSchool && card.to_school_id === currentSchool.id;
+                  const isDonor = currentSchool && card.from_school_id === currentSchool.id;
+
+                  const roleBadge = isRecipient ? (
+                    <span className="inline-flex items-center px-2 py-0.5 rounded-md text-[10px] font-extrabold bg-emerald-100 text-emerald-800 border border-emerald-300">
+                      📥 {t('hitl.roleRecipient')}
+                    </span>
+                  ) : isDonor ? (
+                    <span className="inline-flex items-center px-2 py-0.5 rounded-md text-[10px] font-extrabold bg-blue-100 text-blue-800 border border-blue-300">
+                      📤 {t('hitl.roleDonor')}
+                    </span>
+                  ) : (
+                    <span className="inline-flex items-center px-2 py-0.5 rounded-md text-[10px] font-extrabold bg-purple-100 text-purple-800 border border-purple-300">
+                      🏛️ {t('hitl.roleCoordination')}
+                    </span>
+                  );
+
+                  const approveBtnLabel = isRecipient
+                    ? t('hitl.approveReceiveBtn')
+                    : isDonor
+                    ? t('hitl.approveDispatchBtn')
+                    : t('hitl.approveBtn');
 
                   return (
                     <div
                       key={task.id}
                       className="p-5 rounded-2xl border-2 border-amber-300/80 bg-amber-50/40 shadow-xs space-y-4 hover:shadow-md transition-shadow"
                     >
-                      {/* Badge & Title */}
+                      {/* Badge, Role & Title */}
                       <div className="flex items-start justify-between gap-2">
-                        <div>
-                          <span className="inline-flex items-center space-x-1 px-2.5 py-0.5 rounded-full text-[11px] font-bold bg-amber-200 text-amber-900">
-                            <Sparkles className="w-3 h-3 text-amber-600 mr-1" />
-                            {t('hitl.agentBadge')}
-                          </span>
-                          <h4 className="font-bold text-base text-slate-900 mt-1">
+                        <div className="space-y-1">
+                          <div className="flex items-center space-x-2 flex-wrap gap-1">
+                            <span className="inline-flex items-center space-x-1 px-2.5 py-0.5 rounded-full text-[11px] font-bold bg-amber-200 text-amber-900">
+                              <Sparkles className="w-3 h-3 text-amber-600 mr-1" />
+                              {t('hitl.agentBadge')}
+                            </span>
+                            {roleBadge}
+                          </div>
+                          <h4 className="font-bold text-base text-slate-900">
                             {card.title || card.item_title}
                           </h4>
                         </div>
@@ -182,29 +218,55 @@ export const HITLDrawer = ({
                         </div>
                       )}
 
+                      {/* Alternative Candidate School */}
+                      {card.alternative_candidate && (
+                        <div className="flex items-center space-x-2 p-2.5 bg-slate-100/80 border border-slate-200 rounded-xl text-xs text-slate-700">
+                          <span className="font-bold text-amber-700 shrink-0">🥈 {t('hitl.alternativeOption')}:</span>
+                          <span className="font-medium text-slate-800 truncate">{card.alternative_candidate}</span>
+                        </div>
+                      )}
+
+                      {/* Protocol Code Confirmation Banner */}
+                      {protocolCode && (
+                        <div className="p-3 bg-emerald-50 border border-emerald-300 rounded-xl space-y-1.5 animate-fadeIn">
+                          <div className="flex items-center space-x-1.5 text-xs font-bold text-emerald-800">
+                            <CheckCircle className="w-4 h-4 text-emerald-600 shrink-0" />
+                            <span>{t('hitl.protocolSuccess')}</span>
+                          </div>
+                          <div className="flex items-center justify-between text-[11px] text-emerald-700 font-semibold pt-1 border-t border-emerald-200/60">
+                            <span>{t('hitl.protocolCode')}:</span>
+                            <code className="font-mono bg-white px-2 py-0.5 rounded border border-emerald-300 text-emerald-900 font-black">
+                              {protocolCode}
+                            </code>
+                          </div>
+                        </div>
+                      )}
+
                       {/* HITL Action Buttons */}
-                      <div className="grid grid-cols-2 gap-3 pt-2">
-                        <button
-                          onClick={() => handleReject(task.id)}
-                          disabled={isProcessing}
-                          className="flex items-center justify-center space-x-1.5 py-2.5 px-3 rounded-xl border border-slate-300 bg-white hover:bg-slate-50 text-slate-700 text-xs font-bold transition-all disabled:opacity-50"
-                        >
-                          <XCircle className="w-4 h-4 text-slate-400" />
-                          <span>{t('hitl.rejectBtn')}</span>
-                        </button>
-                        <button
-                          onClick={() => handleApprove(task.id)}
-                          disabled={isProcessing}
-                          className="flex items-center justify-center space-x-1.5 py-2.5 px-3 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white text-xs font-bold transition-all shadow-sm shadow-emerald-600/30 disabled:opacity-50"
-                        >
-                          {isProcessing ? (
-                            <Loader2 className="w-4 h-4 animate-spin" />
-                          ) : (
-                            <CheckCircle className="w-4 h-4 text-emerald-200" />
-                          )}
-                          <span>{t('hitl.approveBtn')}</span>
-                        </button>
-                      </div>
+                      {!protocolCode && (
+                        <div className="grid grid-cols-2 gap-3 pt-2">
+                          <button
+                            onClick={() => handleReject(task.id)}
+                            disabled={isProcessing}
+                            className="flex items-center justify-center space-x-1.5 py-2.5 px-3 rounded-xl border border-slate-300 bg-white hover:bg-slate-50 text-slate-700 text-xs font-bold transition-all disabled:opacity-50"
+                          >
+                            <XCircle className="w-4 h-4 text-slate-400" />
+                            <span>{t('hitl.rejectBtn')}</span>
+                          </button>
+                          <button
+                            onClick={() => handleApprove(task.id)}
+                            disabled={isProcessing}
+                            className="flex items-center justify-center space-x-1.5 py-2.5 px-3 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white text-xs font-bold transition-all shadow-sm shadow-emerald-600/30 disabled:opacity-50"
+                          >
+                            {isProcessing ? (
+                              <Loader2 className="w-4 h-4 animate-spin" />
+                            ) : (
+                              <CheckCircle className="w-4 h-4 text-emerald-200" />
+                            )}
+                            <span>{approveBtnLabel}</span>
+                          </button>
+                        </div>
+                      )}
 
                     </div>
                   );

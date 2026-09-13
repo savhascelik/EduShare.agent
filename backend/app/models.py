@@ -45,6 +45,7 @@ class SurplusItem(Base):
     raw_text = Column(Text, nullable=False)
     item_category = Column(String(100), nullable=False)
     quantity = Column(Integer, nullable=False, default=1)
+    allocated_quantity = Column(Integer, default=0)
     condition_rating = Column(String(50), default="İyi") # 'Yeni', 'İyi', 'Az Kullanılmış', 'Bakım Gerektirir'
     image_url = Column(Text, nullable=True)
     estimated_unit_value_tl = Column(Float, default=1000.0)
@@ -95,6 +96,7 @@ class Transfer(Base):
     quantity = Column(Integer, default=1)
     estimated_savings_tl = Column(Float, default=0.0)
     prevented_co2_kg = Column(Float, default=0.0)
+    protocol_code = Column(String(64), nullable=True)
     status = Column(String(50), default="APPROVED")
     transferred_at = Column(DateTime, default=datetime.utcnow)
 

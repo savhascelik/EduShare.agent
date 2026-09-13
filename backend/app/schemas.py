@@ -78,6 +78,7 @@ class SurplusItemResponse(BaseModel):
     raw_text: str
     item_category: str
     quantity: int
+    allocated_quantity: Optional[int] = 0
     condition_rating: str
     image_url: Optional[str]
     estimated_unit_value_tl: float
@@ -145,6 +146,7 @@ class TransferResponse(BaseModel):
     quantity: int
     estimated_savings_tl: float
     prevented_co2_kg: float
+    protocol_code: Optional[str] = None
     status: str
     transferred_at: datetime
 

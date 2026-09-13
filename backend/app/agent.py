@@ -1,6 +1,6 @@
 import json
 import math
-from typing import Dict, Any, List
+from typing import Dict, Any, List, Optional
 from strands import Agent, tool
 from strands.models import BedrockModel
 from app.config import settings
@@ -203,7 +203,8 @@ def create_hitl_approval_card(
     savings_tl: float,
     co2_kg: float,
     distance_km: float,
-    reasoning: str
+    reasoning: str,
+    alternative_candidate: Optional[str] = None
 ) -> str:
     """Sets task status to AWAITING_HUMAN_APPROVAL and stores the transfer decision card."""
     db = SessionLocal()
@@ -231,7 +232,8 @@ def create_hitl_approval_card(
             "distance_km": distance_km,
             "estimated_savings_tl": savings_tl,
             "prevented_co2_kg": co2_kg,
-            "reasoning": reasoning
+            "reasoning": reasoning,
+            "alternative_candidate": alternative_candidate
         }
         
         task = db.query(AgentTask).filter(AgentTask.id == task_id).first()
@@ -276,10 +278,11 @@ def get_edushare_agent() -> Agent:
         "GÖREVİN:\n"
         "1. Bir okul fazla eşya girdiğinde, önce query_nearby_needs ile yakın mesafedeki açık ihtiyaçları tespit et.\n"
         "2. Bir okul ihtiyaç girdiğinde ise, query_nearby_surplus ile çevre okullardaki uygun fazla envanteri sorgula.\n"
-        "3. En uygun eşleşme için calculate_impact_metrics ile tasarruf ve CO2 etkisini hesapla.\n"
-        "4. Kesinlikle kendi başına transferi tamamlama! Daima create_hitl_approval_card aracını çağırarak "
-        "okul müdürünün onayına sunulacak Human-in-the-Loop kartını hazırla.\n"
-        "5. Her zaman Türkçe, saygılı, net ve kamu yararını gözeten bir üslupla çalış."
+        "3. Kamu Öncelik Formülü: (Aciliyet Puanı: CRITICAL=40, HIGH=30, MEDIUM=20, LOW=10) * 2 - (Mesafe km). En yüksek skora sahip okulu birincil seç.\n"
+        "4. En uygun eşleşme için calculate_impact_metrics ile tasarruf ve CO2 etkisini hesapla.\n"
+        "5. Birden fazla aday okul varsa, ikinci sıradaki okulu create_hitl_approval_card aracının 'alternative_candidate' parametresine yaz (örn: 'Kartal Anadolu Lisesi (Mesafe: 14km, Aciliyet: Yüksek)').\n"
+        "6. Kesinlikle kendi başına transferi tamamlama! Daima create_hitl_approval_card aracını çağırarak okul müdürünün onayına sunulacak Human-in-the-Loop kartını hazırla.\n"
+        "7. Her zaman Türkçe, saygılı, net ve kamu yararını gözeten bir üslupla çalış."
     )
     
     return Agent(
