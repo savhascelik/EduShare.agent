@@ -1,6 +1,6 @@
 import React, { useState, useRef, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { X, UploadCloud, Sparkles, Loader2, Check, AlertCircle, Zap } from 'lucide-react';
+import { X, UploadCloud, Sparkles, Loader2, Check, AlertCircle, Zap, Lock, LogIn } from 'lucide-react';
 import { useTranslation } from 'react-i18next';
 import api from '../services/api';
 import { useAuth } from '../context/AuthContext';
@@ -206,7 +206,31 @@ export const SurplusModal = ({
               </button>
             </div>
 
-            {/* Form */}
+            {/* Form or Auth Guard */}
+            {!isAuthenticated ? (
+              <div className="p-8 text-center py-16 flex-1 flex flex-col items-center justify-center">
+                <div className="w-16 h-16 rounded-2xl bg-emerald-100 text-emerald-800 flex items-center justify-center mb-4 shadow-inner">
+                  <Lock className="w-8 h-8" />
+                </div>
+                <h4 className="font-bold text-slate-800 text-base mb-1">
+                  {t('surplus.authRequiredTitle')}
+                </h4>
+                <p className="text-xs text-slate-500 max-w-sm mx-auto mb-6 leading-relaxed">
+                  {t('surplus.authRequiredDesc')}
+                </p>
+                <button
+                  type="button"
+                  onClick={() => {
+                    onClose();
+                    onRequireAuth && onRequireAuth();
+                  }}
+                  className="inline-flex items-center space-x-2 px-5 py-2.5 rounded-xl bg-slate-900 hover:bg-slate-800 text-white text-xs font-bold transition shadow-sm cursor-pointer"
+                >
+                  <LogIn className="w-4 h-4" />
+                  <span>{t('surplus.loginToContinue')}</span>
+                </button>
+              </div>
+            ) : (
             <form onSubmit={handleSubmit} className="flex-1 overflow-y-auto p-6 space-y-5">
               
               {/* Photo Upload Area */}
@@ -428,6 +452,7 @@ export const SurplusModal = ({
               </div>
 
             </form>
+            )}
           </motion.div>
         </div>
       )}

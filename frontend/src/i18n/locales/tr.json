@@ -136,6 +136,9 @@
   "surplus": {
     "modalTitle": "Fazla Eşya Bildirimi",
     "modalSubtitle": "Fotoğraf yükleyin; Amazon Bedrock yapay zekası ayrıntıları otomatik çıkarsın.",
+    "authRequiredTitle": "Okul Girişi Zorunludur",
+    "authRequiredDesc": "Fazla eşya bildirimi ve envanter paylaşımı yalnızca T.C. Millî Eğitim Bakanlığı yetkili okul hesapları tarafından yapılabilir.",
+    "loginToContinue": "Okul Hesabı ile Giriş Yap",
     "photoLabel": "Eşya Fotoğrafı (Opsiyonel / Bedrock Vision Tanıma)",
     "aiQuotaBadge": "YZ Kotası",
     "cacheHit": "⚡ Akıllı Önbellek (0 Kredi Harcandı)",
@@ -179,6 +182,9 @@
   "need": {
     "modalTitle": "Okul İhtiyaç Bildirimi",
     "modalSubtitle": "Eğitim materyali veya donanım talebinizi komşu okullara duyurun.",
+    "authRequiredTitle": "Okul Girişi Zorunludur",
+    "authRequiredDesc": "Resmi malzeme ve donanım ihtiyaç talebi oluşturmak için okul müdürlüğü hesabınızla giriş yapmalısınız.",
+    "loginToContinue": "Okul Hesabı ile Giriş Yap",
     "needTitle": "İhtiyaç Başlığı *",
     "needTitlePlaceholder": "Örn: Kodlama Atölyesi İçin 10 Adet Bilgisayar",
     "category": "Kategori",

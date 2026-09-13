@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { X, HandHeart, Loader2, AlertCircle } from 'lucide-react';
+import { X, HandHeart, Loader2, AlertCircle, Lock, LogIn } from 'lucide-react';
 import { useTranslation } from 'react-i18next';
 import api from '../services/api';
 import { useAuth } from '../context/AuthContext';
@@ -129,7 +129,31 @@ export const NeedModal = ({
               </button>
             </div>
 
-            {/* Form */}
+            {/* Form or Auth Guard */}
+            {!isAuthenticated ? (
+              <div className="p-8 text-center py-16 flex-1 flex flex-col items-center justify-center">
+                <div className="w-16 h-16 rounded-2xl bg-blue-100 text-blue-800 flex items-center justify-center mb-4 shadow-inner">
+                  <Lock className="w-8 h-8" />
+                </div>
+                <h4 className="font-bold text-slate-800 text-base mb-1">
+                  {t('need.authRequiredTitle')}
+                </h4>
+                <p className="text-xs text-slate-500 max-w-sm mx-auto mb-6 leading-relaxed">
+                  {t('need.authRequiredDesc')}
+                </p>
+                <button
+                  type="button"
+                  onClick={() => {
+                    onClose();
+                    onRequireAuth && onRequireAuth();
+                  }}
+                  className="inline-flex items-center space-x-2 px-5 py-2.5 rounded-xl bg-slate-900 hover:bg-slate-800 text-white text-xs font-bold transition shadow-sm cursor-pointer"
+                >
+                  <LogIn className="w-4 h-4" />
+                  <span>{t('need.loginToContinue')}</span>
+                </button>
+              </div>
+            ) : (
             <form onSubmit={handleSubmit} className="p-6 space-y-4">
               <div>
                 <label className="block text-xs font-bold text-slate-700 uppercase mb-1">
@@ -233,6 +257,7 @@ export const NeedModal = ({
               </div>
 
             </form>
+            )}
           </motion.div>
         </div>
       )}

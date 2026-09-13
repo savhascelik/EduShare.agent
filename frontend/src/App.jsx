@@ -103,13 +103,29 @@ function MainApp() {
     return card.from_school_id === currentSchool?.id || card.to_school_id === currentSchool?.id;
   }).length;
 
+  const handleOpenSurplus = () => {
+    if (!isAuthenticated) {
+      setIsAuthOpen(true);
+    } else {
+      setIsSurplusOpen(true);
+    }
+  };
+
+  const handleOpenNeed = () => {
+    if (!isAuthenticated) {
+      setIsAuthOpen(true);
+    } else {
+      setIsNeedOpen(true);
+    }
+  };
+
   return (
     <div className="min-h-screen bg-[#FDFBF7] text-slate-900 font-sans flex flex-col selection:bg-amber-100 selection:text-amber-900">
       
       {/* Top Navbar */}
       <Navbar
-        onOpenSurplus={() => setIsSurplusOpen(true)}
-        onOpenNeed={() => setIsNeedOpen(true)}
+        onOpenSurplus={handleOpenSurplus}
+        onOpenNeed={handleOpenNeed}
         onOpenHITL={() => setIsHITLOpen(true)}
         onOpenAuth={() => setIsAuthOpen(true)}
         onOpenProfile={() => setIsProfileOpen(true)}
@@ -166,8 +182,8 @@ function MainApp() {
           transfers={transfers}
           surplusItems={surplusItems}
           needRequests={needRequests}
-          onOpenSurplus={() => setIsSurplusOpen(true)}
-          onOpenNeed={() => setIsNeedOpen(true)}
+          onOpenSurplus={handleOpenSurplus}
+          onOpenNeed={handleOpenNeed}
         />
 
         {/* Activity & Inventory Feed */}
@@ -193,8 +209,8 @@ function MainApp() {
 
       {/* Mobile Bottom Navigation Bar (Fixed for phones) */}
       <MobileBottomNav
-        onOpenSurplus={() => setIsSurplusOpen(true)}
-        onOpenNeed={() => setIsNeedOpen(true)}
+        onOpenSurplus={handleOpenSurplus}
+        onOpenNeed={handleOpenNeed}
         onOpenHITL={() => setIsHITLOpen(true)}
         onOpenAuth={() => setIsAuthOpen(true)}
         onOpenProfile={() => setIsProfileOpen(true)}

@@ -136,6 +136,9 @@
   "surplus": {
     "modalTitle": "Report Surplus Equipment",
     "modalSubtitle": "Upload a photo; Amazon Bedrock AI automatically extracts item details, quantity, and condition.",
+    "authRequiredTitle": "School Login Required",
+    "authRequiredDesc": "Listing surplus equipment and inventory sharing can only be performed by verified school administration accounts.",
+    "loginToContinue": "Log In with School Account",
     "photoLabel": "Equipment Photo (Optional / Bedrock Vision Detection)",
     "aiQuotaBadge": "AI Quota",
     "cacheHit": "⚡ Smart Cache (0 Credits Used)",
@@ -179,6 +182,9 @@
   "need": {
     "modalTitle": "School Equipment Request",
     "modalSubtitle": "Broadcast learning equipment or infrastructure needs to neighbor schools.",
+    "authRequiredTitle": "School Login Required",
+    "authRequiredDesc": "Submitting official equipment and material requests requires logging in with your school administration account.",
+    "loginToContinue": "Log In with School Account",
     "needTitle": "Request Title *",
     "needTitlePlaceholder": "e.g., 10 Computers for Coding Workshop",
     "category": "Category",
