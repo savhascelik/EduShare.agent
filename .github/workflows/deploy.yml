@@ -23,21 +23,34 @@ jobs:
           SSH_KEY: ${{ secrets.EC2_SSH_KEY }}
         run: |
           echo "=========================================="
-          echo "🚀 Configuring SSH Client on Runner..."
+          echo "🔍 Environment & Secret Diagnostics:"
           echo "=========================================="
+          echo "SSH_HOST: $SSH_HOST (len: ${#SSH_HOST})"
+          echo "SSH_USER: $SSH_USER (len: ${#SSH_USER})"
+          echo "SSH_KEY length: ${#SSH_KEY}"
+          echo "SSH_KEY line count: $(printf '%s\n' "$SSH_KEY" | wc -l)"
+          echo "SSH_KEY start: $(printf '%s\n' "$SSH_KEY" | head -n 1)"
+          echo "SSH_KEY end:   $(printf '%s\n' "$SSH_KEY" | tail -n 1)"
+          echo "=========================================="
+
+          if [ -z "$SSH_KEY" ]; then
+            echo "❌ ERROR: SSH_KEY secret is completely empty!"
+            exit 1
+          fi
+
           mkdir -p ~/.ssh
           chmod 700 ~/.ssh
 
-          # Write key ensuring proper trailing newline
+          # Write key file
           printf '%s\n' "$SSH_KEY" > ~/.ssh/id_rsa
           chmod 600 ~/.ssh/id_rsa
 
-          # Verify key structure
-          if ! ssh-keygen -y -f ~/.ssh/id_rsa > /dev/null 2>&1; then
-            echo "❌ ERROR: The EC2_SSH_KEY in GitHub Secrets could not be parsed by OpenSSH."
-            echo "Please ensure the entire private key (including BEGIN and END lines) is pasted correctly."
+          # Check with ssh-keygen
+          echo "🔍 Verifying key with ssh-keygen..."
+          ssh-keygen -y -f ~/.ssh/id_rsa || {
+            echo "❌ ERROR: ssh-keygen could not parse the private key."
             exit 1
-          fi
+          }
 
           echo "✅ SSH Key verified successfully."
           echo "📡 Connecting to EC2 ($SSH_USER@$SSH_HOST)..."
