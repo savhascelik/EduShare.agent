@@ -101,9 +101,9 @@ export const SurplusModal = ({
       console.error('Vision analysis error:', err);
       const detail = err?.response?.data?.detail;
       if (err?.response?.status === 429) {
-        setError(detail || 'Günlük yapay zeka kotası dolmuştur.');
+        setError(detail || t('surplus.quotaExceeded'));
       } else if (err?.response?.status === 413) {
-        setError(detail || 'Görsel boyutu 4MB sınırını aşıyor.');
+        setError(detail || t('surplus.fileTooLarge'));
       } else {
         setError(detail || 'Vision analysis could not be completed. You can manually enter item details.');
       }
@@ -217,11 +217,16 @@ export const SurplusModal = ({
                   </label>
                   {quotaInfo && (
                     <div 
-                      title="Günlük Amazon Bedrock görsel analiz kotası"
+                      title={t('navbar.aiQuotaTooltip', {
+                        remaining: quotaInfo.remaining,
+                        limit: quotaInfo.limit,
+                        global_used: quotaInfo.global_used ?? 0,
+                        global_limit: quotaInfo.global_limit ?? 300
+                      })}
                       className="flex items-center space-x-1.5 text-[11px] font-bold px-2.5 py-0.5 rounded-full bg-slate-100 text-slate-700 border border-slate-200"
                     >
                       <Sparkles className="w-3 h-3 text-emerald-600" />
-                      <span>YZ Kotası: <strong className="text-emerald-700">{quotaInfo.remaining}/{quotaInfo.limit}</strong></span>
+                      <span>{t('surplus.aiQuotaBadge')}: <strong className="text-emerald-700 font-mono">{quotaInfo.remaining}/{quotaInfo.limit}</strong></span>
                     </div>
                   )}
                 </div>
@@ -292,7 +297,11 @@ export const SurplusModal = ({
                       : 'bg-emerald-50 text-emerald-900 border border-emerald-200'
                   }`}>
                     <Sparkles className="w-4 h-4 shrink-0 text-emerald-600" />
-                    <span>{quotaInfo.message}</span>
+                    <span>
+                      {quotaInfo.is_cached
+                        ? t('surplus.cacheHit')
+                        : t('surplus.bedrockHit', { remaining: quotaInfo.remaining, limit: quotaInfo.limit })}
+                    </span>
                   </div>
                 )}
               </div>

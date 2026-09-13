@@ -11,7 +11,11 @@
     "requestNeed": "Request Item",
     "schoolLogin": "School Portal",
     "logout": "Log Out",
-    "students": "Students"
+    "students": "Students",
+    "aiQuota": "AI Quota",
+    "aiQuotaCompact": "AI",
+    "aiQuotaTooltip": "Daily Amazon Bedrock AI Quota: {{remaining}}/{{limit}} (Global: {{global_used}}/{{global_limit}})",
+    "guestQuotaNotice": "Guest Quota"
   },
   "hero": {
     "savingsTitle": "Public Savings",
@@ -133,6 +137,11 @@
     "modalTitle": "Report Surplus Equipment",
     "modalSubtitle": "Upload a photo; Amazon Bedrock AI automatically extracts item details, quantity, and condition.",
     "photoLabel": "Equipment Photo (Optional / Bedrock Vision Detection)",
+    "aiQuotaBadge": "AI Quota",
+    "cacheHit": "⚡ Smart Cache (0 Credits Used)",
+    "bedrockHit": "🤖 Analyzed with Bedrock Nova Pro (Remaining: {{remaining}}/{{limit}})",
+    "quotaExceeded": "Daily AI analysis quota has been reached.",
+    "fileTooLarge": "Image exceeds the 4MB limit.",
     "dropzoneTitle": "Upload or Drag & Drop Photo",
     "dropzoneDesc": "Amazon Bedrock Nova Pro will identify the item, quantity, condition, and market value.",
     "aiDetected": "Identified by Bedrock",

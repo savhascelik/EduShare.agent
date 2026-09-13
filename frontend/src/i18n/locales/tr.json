@@ -11,7 +11,11 @@
     "requestNeed": "İhtiyaç Bildir",
     "schoolLogin": "Okul Girişi",
     "logout": "Çıkış Yap",
-    "students": "Öğr."
+    "students": "Öğr.",
+    "aiQuota": "YZ Kotası",
+    "aiQuotaCompact": "YZ",
+    "aiQuotaTooltip": "Günlük Amazon Bedrock YZ Kotası: {{remaining}}/{{limit}} (Genel: {{global_used}}/{{global_limit}})",
+    "guestQuotaNotice": "Misafir Kotası"
   },
   "hero": {
     "savingsTitle": "Kamu Tasarrufu",
@@ -133,6 +137,11 @@
     "modalTitle": "Fazla Eşya Bildirimi",
     "modalSubtitle": "Fotoğraf yükleyin; Amazon Bedrock yapay zekası ayrıntıları otomatik çıkarsın.",
     "photoLabel": "Eşya Fotoğrafı (Opsiyonel / Bedrock Vision Tanıma)",
+    "aiQuotaBadge": "YZ Kotası",
+    "cacheHit": "⚡ Akıllı Önbellek (0 Kredi Harcandı)",
+    "bedrockHit": "🤖 Bedrock Nova Pro ile Analiz Edildi (Kalan: {{remaining}}/{{limit}})",
+    "quotaExceeded": "Günlük yapay zeka analiz kotası dolmuştur.",
+    "fileTooLarge": "Görsel boyutu 4MB sınırını aşıyor.",
     "dropzoneTitle": "Fotoğraf Yükleyin veya Sürükleyin",
     "dropzoneDesc": "Amazon Bedrock Nova Pro modeli nesneyi, miktarını ve kondisyonunu otomatik doldurur.",
     "aiDetected": "Bedrock ile Tanındı",
