@@ -2,6 +2,7 @@ import React, { useState } from 'react';
 import { motion } from 'framer-motion';
 import { ArrowRight, Package, HandHeart, Sparkles, Building2, Calendar } from 'lucide-react';
 import { useTranslation } from 'react-i18next';
+import { cleanItemTitle } from '../utils/formatters';
 
 export const RecentActivityFeed = ({
   transfers = [],
@@ -10,7 +11,7 @@ export const RecentActivityFeed = ({
 }) => {
   const { t, i18n } = useTranslation();
   const locale = i18n.language?.startsWith('en') ? 'en-US' : 'tr-TR';
-  const currencySymbol = i18n.language?.startsWith('en') ? '$' : '₺';
+  const currencySymbol = '₺';
 
   const [activeTab, setActiveTab] = useState('transfers'); // 'transfers' | 'surplus' | 'needs'
 
@@ -81,7 +82,7 @@ export const RecentActivityFeed = ({
                     </span>
                   </div>
                   <h4 className="font-bold text-sm text-slate-900">
-                    {item.item_summary} ({item.quantity} {t('hero.units.items')})
+                    {cleanItemTitle(item.item_summary)} ({item.quantity} {t('hero.units.items')})
                   </h4>
                   <div className="flex items-center space-x-2 text-xs text-slate-600">
                     <span className="font-semibold text-slate-800">{item.from_school_name}</span>

@@ -105,13 +105,24 @@ async def approve_transfer_task(
         await sse_manager.broadcast("TASK_SUPERSEDED", {"task_ids": [task.id], "reason": "STOCK_DEPLETED"})
         raise HTTPException(status_code=409, detail="Bu eşyanın stoku başka bir işlemle tükenmiştir.")
 
+    orig_quantity = int(quantity) if quantity else 1
     # Adaptive partial stock: if requested is higher than available stock, cap to available
     if transfer_quantity > available_stock:
         transfer_quantity = available_stock
         payload["quantity"] = transfer_quantity
         payload["stock_adjusted"] = True
-        task.match_payload = dict(payload)
-        flag_modified(task, "match_payload")
+        payload["stock_warning"] = f"Mevcut stok yetersiz olduğundan transfer {transfer_quantity} adet ile sınırlandırıldı."
+
+    # Proportionally recalculate savings and CO2 for this transfer
+    if orig_quantity > 0 and transfer_quantity != orig_quantity:
+        ratio = transfer_quantity / orig_quantity
+        savings_tl = round(savings_tl * ratio, 2)
+        co2_kg = round(co2_kg * ratio, 2)
+        payload["estimated_savings_tl"] = savings_tl
+        payload["prevented_co2_kg"] = co2_kg
+
+    task.match_payload = dict(payload)
+    flag_modified(task, "match_payload")
 
     surplus.allocated_quantity = (surplus.allocated_quantity or 0) + transfer_quantity
     surplus.quantity = max(0, surplus.quantity - transfer_quantity)
@@ -189,9 +200,19 @@ async def approve_transfer_task(
                     )
                 else:
                     # Partial stock remaining: adapt proposal quantity to available stock
+                    s_orig_qty = s_payload.get("quantity") or 1
                     s_payload["quantity"] = remaining_stock
                     s_payload["stock_adjusted"] = True
                     s_payload["stock_warning"] = f"Mevcut stok azaldığı için miktar {remaining_stock} olarak güncellendi."
+                    # Proportionally scale down savings_tl and prevented_co2_kg
+                    if s_orig_qty > 0 and s_orig_qty != remaining_stock:
+                        ratio = remaining_stock / s_orig_qty
+                        if "estimated_savings_tl" in s_payload:
+                            s_payload["estimated_savings_tl"] = round(s_payload["estimated_savings_tl"] * ratio, 2)
+                        elif surplus and surplus.estimated_unit_value_tl:
+                            s_payload["estimated_savings_tl"] = round(surplus.estimated_unit_value_tl * remaining_stock, 2)
+                        if "prevented_co2_kg" in s_payload:
+                            s_payload["prevented_co2_kg"] = round(s_payload["prevented_co2_kg"] * ratio, 2)
                     s_task.match_payload = dict(s_payload)
                     flag_modified(s_task, "match_payload")
 

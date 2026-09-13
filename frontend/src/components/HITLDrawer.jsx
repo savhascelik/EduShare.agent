@@ -3,6 +3,7 @@ import { motion, AnimatePresence } from 'framer-motion';
 import { X, CheckCircle, XCircle, Sparkles, ArrowRight, ShieldCheck, Coins, Leaf, MapPin, Loader2, FileText } from 'lucide-react';
 import { useTranslation } from 'react-i18next';
 import { useAuth } from '../context/AuthContext';
+import { cleanItemTitle } from '../utils/formatters';
 import api from '../services/api';
 
 export const HITLDrawer = ({
@@ -14,7 +15,7 @@ export const HITLDrawer = ({
   const { t, i18n } = useTranslation();
   const { user: currentSchool } = useAuth();
   const locale = i18n.language?.startsWith('en') ? 'en-US' : 'tr-TR';
-  const currencySymbol = i18n.language?.startsWith('en') ? '$' : '₺';
+  const currencySymbol = '₺';
 
   const [processingId, setProcessingId] = useState(null);
   const [error, setError] = useState(null);
@@ -191,7 +192,7 @@ export const HITLDrawer = ({
                             {roleBadge}
                           </div>
                           <h4 className="font-bold text-base text-slate-900">
-                            {card.title || card.item_title}
+                            {cleanItemTitle(card.title || card.item_title)}
                           </h4>
                         </div>
                         <span className="text-xs font-black text-amber-800 bg-white px-2.5 py-1 rounded-lg border border-amber-200 shadow-2xs shrink-0">

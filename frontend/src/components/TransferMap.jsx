@@ -20,6 +20,7 @@ import {
 } from 'lucide-react';
 import { useTranslation } from 'react-i18next';
 import { useAuth } from '../context/AuthContext';
+import { cleanItemTitle } from '../utils/formatters';
 import api from '../services/api';
 
 // Category icon mapper helper
@@ -182,11 +183,8 @@ function ClusteredMarkersLayer({
       else if (schoolNeeds.length > 0) primaryType = 'NEED';
 
       const formatItemBadge = (title = '', qty = 1) => {
-        let clean = title.trim();
-        if (!/^\d+/.test(clean)) {
-          clean = `${qty}x ${clean}`;
-        }
-        return clean;
+        const clean = cleanItemTitle(title);
+        return qty > 1 ? `${qty}x ${clean}` : clean;
       };
 
       const topSurplus = schoolSurplus[0];
@@ -367,7 +365,7 @@ function ClusteredMarkersLayer({
                         <div key={item.id} className="p-1.5 rounded-lg bg-emerald-50/70 border border-emerald-100 flex items-center justify-between text-[11px] gap-1">
                           <div className="flex items-center space-x-1.5 truncate">
                             <span>{getCategoryIcon(item.item_category)}</span>
-                            <span className="font-medium text-slate-900 truncate">{item.title}</span>
+                            <span className="font-medium text-slate-900 truncate">{cleanItemTitle(item.title)}</span>
                           </div>
                           <div className="flex items-center space-x-1.5 shrink-0">
                             <span className="font-bold text-emerald-700 text-[10px]">
@@ -511,7 +509,7 @@ export const TransferMap = ({
 }) => {
   const { t, i18n } = useTranslation();
   const locale = i18n.language?.startsWith('en') ? 'en-US' : 'tr-TR';
-  const currencySymbol = i18n.language?.startsWith('en') ? '$' : '₺';
+  const currencySymbol = '₺';
 
   // Filters State
   const [searchQuery, setSearchQuery] = useState('');
@@ -884,7 +882,7 @@ export const TransferMap = ({
                     <span>{t('map.popup.transferBadge')}</span>
                   </div>
                   <div className="font-semibold text-slate-900 text-sm">
-                    {tItem.item_summary} ({tItem.quantity})
+                    {cleanItemTitle(tItem.item_summary)} ({tItem.quantity})
                   </div>
                   <div className="flex items-center justify-between text-slate-600 pt-1 border-t border-slate-100">
                     <span className="truncate max-w-[100px] font-medium">{tItem.from_school_name}</span>

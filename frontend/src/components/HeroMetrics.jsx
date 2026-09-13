@@ -6,7 +6,7 @@ import { useTranslation } from 'react-i18next';
 export const HeroMetrics = ({ stats }) => {
   const { t, i18n } = useTranslation();
   const locale = i18n.language?.startsWith('en') ? 'en-US' : 'tr-TR';
-  const currencySymbol = i18n.language?.startsWith('en') ? '$' : '₺';
+  const currencySymbol = '₺';
 
   const metrics = [
     {
