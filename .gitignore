@@ -12,6 +12,7 @@ backend/.env
 *.log
 *.pem
 deployment.json
+*.png
 
 # OS & IDE
 .DS_Store
