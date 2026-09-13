@@ -69,7 +69,11 @@
       "noSurplus": "Aucun surplus enregistré",
       "noNeeds": "Aucun besoin enregistré",
       "offerSurplus": "Proposer un bien",
-      "requestNeed": "Exprimer un besoin"
+      "requestNeed": "Exprimer un besoin",
+      "requestItem": "Demander",
+      "fulfillNeed": "Répondre",
+      "requestPrompt": "Combien d'unités souhaitez-vous demander ? (Disponible: {{max}})",
+      "peerProposalSent": "Votre demande a été envoyée avec succès à l'établissement."
     }
   },
   "hitl": {
@@ -85,6 +89,17 @@
     "reasoningTitle": "Justification de l'IA",
     "rejectBtn": "Refuser",
     "approveBtn": "Valider & Transférer",
+    "withdrawBtn": "Retirer l'offre",
+    "withdrawing": "Retrait en cours...",
+    "withdrawSuccess": "L'offre a été retirée avec succès.",
+    "initiatorAi": "🤖 Correspondance IA Autonome",
+    "initiatorPeerRequest": "📥 Demande Directe d'Établissement",
+    "initiatorPeerOffer": "📤 Offre Directe d'Établissement",
+    "stockAdjustedWarning": "⚠️ Mise à jour de stock : Le stock disponible a diminué; proposition ajustée à {{count}} unités.",
+    "statusWithdrawn": "Retirée",
+    "statusSuperseded": "Stock Épuisé - Archivée",
+    "statusMerged": "Offre Fusionnée",
+    "stockExhaustedConflict": "Le stock de cet article a été épuisé par un autre transfert.",
     "roleRecipient": "Établissement Bénéficiaire / Réception",
     "roleDonor": "Établissement Donateur / Autorisation d'Envoi",
     "roleCoordination": "Validation de Coordination",

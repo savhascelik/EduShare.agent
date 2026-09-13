@@ -19,6 +19,8 @@ import {
   Eye
 } from 'lucide-react';
 import { useTranslation } from 'react-i18next';
+import { useAuth } from '../context/AuthContext';
+import api from '../services/api';
 
 // Category icon mapper helper
 const getCategoryIcon = (category = '') => {
@@ -146,6 +148,7 @@ function ClusteredMarkersLayer({
   currencySymbol
 }) {
   const map = useMap();
+  const { user: currentSchool } = useAuth();
   const [zoom, setZoom] = useState(map.getZoom());
 
   // Listen to zoom & pan
@@ -361,13 +364,40 @@ function ClusteredMarkersLayer({
                   {schoolSurplus.length > 0 ? (
                     <div className="space-y-1 max-h-28 overflow-y-auto pr-1">
                       {schoolSurplus.map((item) => (
-                        <div key={item.id} className="p-1.5 rounded-lg bg-emerald-50/70 border border-emerald-100 flex items-center justify-between text-[11px]">
+                        <div key={item.id} className="p-1.5 rounded-lg bg-emerald-50/70 border border-emerald-100 flex items-center justify-between text-[11px] gap-1">
                           <div className="flex items-center space-x-1.5 truncate">
                             <span>{getCategoryIcon(item.item_category)}</span>
                             <span className="font-medium text-slate-900 truncate">{item.title}</span>
                           </div>
-                          <div className="text-right shrink-0 font-bold text-emerald-700 text-[10px]">
-                            {item.quantity} pcs • {currencySymbol}{Number(item.estimated_unit_value_tl).toLocaleString(locale)}
+                          <div className="flex items-center space-x-1.5 shrink-0">
+                            <span className="font-bold text-emerald-700 text-[10px]">
+                              {item.quantity} pcs
+                            </span>
+                            {currentSchool && school.id !== currentSchool.id && (
+                              <button
+                                onClick={async () => {
+                                  const qtyStr = window.prompt(t('map.popup.requestPrompt', { max: item.quantity }), '1');
+                                  if (qtyStr) {
+                                    const qty = parseInt(qtyStr, 10);
+                                    if (qty > 0 && qty <= item.quantity) {
+                                      try {
+                                        const res = await api.createPeerProposal({
+                                          proposal_type: 'REQUEST',
+                                          surplus_item_id: item.id,
+                                          quantity: qty
+                                        });
+                                        alert(res.message || t('map.popup.peerProposalSent'));
+                                      } catch (e) {
+                                        alert(e?.response?.data?.detail || 'Talep iletilemedi');
+                                      }
+                                    }
+                                  }
+                                }}
+                                className="px-1.5 py-0.5 rounded bg-emerald-600 hover:bg-emerald-700 text-white font-bold text-[9px] cursor-pointer transition-colors"
+                              >
+                                {t('map.popup.requestItem')}
+                              </button>
+                            )}
                           </div>
                         </div>
                       ))}
@@ -391,14 +421,49 @@ function ClusteredMarkersLayer({
                   {schoolNeeds.length > 0 ? (
                     <div className="space-y-1 max-h-24 overflow-y-auto pr-1">
                       {schoolNeeds.map((need) => (
-                        <div key={need.id} className="p-1.5 rounded-lg bg-blue-50/70 border border-blue-100 flex items-center justify-between text-[11px]">
+                        <div key={need.id} className="p-1.5 rounded-lg bg-blue-50/70 border border-blue-100 flex items-center justify-between text-[11px] gap-1">
                           <div className="flex items-center space-x-1.5 truncate">
                             <span>{getCategoryIcon(need.item_category)}</span>
                             <span className="font-medium text-slate-900 truncate">{need.title}</span>
                           </div>
-                          <span className="text-[9px] px-1.5 py-0.5 rounded-full font-extrabold bg-blue-100 text-blue-800 shrink-0">
-                            {need.quantity_needed} {t('hero.units.items')}
-                          </span>
+                          <div className="flex items-center space-x-1.5 shrink-0">
+                            <span className="text-[9px] px-1.5 py-0.5 rounded-full font-extrabold bg-blue-100 text-blue-800">
+                              {need.quantity_needed} {t('hero.units.items')}
+                            </span>
+                            {currentSchool && school.id !== currentSchool.id && (
+                              <button
+                                onClick={async () => {
+                                  const mySurplus = surplusItems.filter(it => it.school_id === currentSchool.id && it.quantity > 0);
+                                  if (mySurplus.length === 0) {
+                                    alert(t('map.popup.noSurplus'));
+                                    onOpenSurplus && onOpenSurplus();
+                                    return;
+                                  }
+                                  const surplusToOffer = mySurplus[0];
+                                  const qtyStr = window.prompt(`${surplusToOffer.title} (${t('map.popup.requestPrompt', { max: surplusToOffer.quantity })})`, Math.min(surplusToOffer.quantity, need.quantity_needed).toString());
+                                  if (qtyStr) {
+                                    const qty = parseInt(qtyStr, 10);
+                                    if (qty > 0 && qty <= surplusToOffer.quantity) {
+                                      try {
+                                        const res = await api.createPeerProposal({
+                                          proposal_type: 'OFFER',
+                                          surplus_item_id: surplusToOffer.id,
+                                          need_id: need.id,
+                                          quantity: qty
+                                        });
+                                        alert(res.message || t('map.popup.peerProposalSent'));
+                                      } catch (e) {
+                                        alert(e?.response?.data?.detail || 'Teklif iletilemedi');
+                                      }
+                                    }
+                                  }
+                                }}
+                                className="px-1.5 py-0.5 rounded bg-blue-600 hover:bg-blue-700 text-white font-bold text-[9px] cursor-pointer transition-colors"
+                              >
+                                {t('map.popup.fulfillNeed')}
+                              </button>
+                            )}
+                          </div>
                         </div>
                       ))}
                     </div>

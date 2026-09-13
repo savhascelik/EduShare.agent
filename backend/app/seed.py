@@ -1,6 +1,6 @@
 from datetime import datetime, timedelta
 from app.database import SessionLocal, Base, engine
-from app.models import School, SurplusItem, NeedRequest, AgentTask, Transfer
+from app.models import School, SurplusItem, NeedRequest, AgentTask, Transfer, StockLedger
 from app.auth import get_password_hash
 
 def seed_database():
@@ -175,6 +175,17 @@ def seed_database():
         )
 
         db.add_all([surplus1, surplus2, surplus3, surplus4, surplus5])
+
+        # Seed Initial Stock Ledgers
+        for s_item in [surplus1, surplus2, surplus3, surplus4, surplus5]:
+            db.add(StockLedger(
+                surplus_item_id=s_item.id,
+                school_id=s_item.school_id,
+                movement_type="INITIAL_REGISTRATION",
+                quantity_delta=s_item.quantity,
+                balance_after=s_item.quantity,
+                note="Sistem başlangıç envanter kaydı."
+            ))
 
         # Seed Needs
         need1 = NeedRequest(

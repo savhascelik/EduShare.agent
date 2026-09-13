@@ -239,6 +239,9 @@ def create_hitl_approval_card(
         task = db.query(AgentTask).filter(AgentTask.id == task_id).first()
         if task:
             task.status = "AWAITING_HUMAN_APPROVAL"
+            task.initiator_type = "AI"
+            task.initiator_school_id = None
+            task.target_school_id = to_school_id
             task.match_payload = card_payload
             db.commit()
             

@@ -52,6 +52,19 @@ export const HITLDrawer = ({
     }
   };
 
+  const handleWithdraw = async (taskId) => {
+    setProcessingId(taskId);
+    setError(null);
+    try {
+      await api.withdrawTask(taskId);
+      onTaskProcessed && onTaskProcessed(taskId, 'WITHDRAWN');
+    } catch (err) {
+      setError(err?.response?.data?.detail || 'Withdrawal failed.');
+    } finally {
+      setProcessingId(null);
+    }
+  };
+
   const pendingTasks = tasks.filter((tItem) => tItem.status === 'AWAITING_HUMAN_APPROVAL');
 
   return (
@@ -127,6 +140,23 @@ export const HITLDrawer = ({
 
                   const isRecipient = currentSchool && card.to_school_id === currentSchool.id;
                   const isDonor = currentSchool && card.from_school_id === currentSchool.id;
+                  const isInitiator = currentSchool && task.initiator_school_id === currentSchool.id;
+
+                  const initiatorType = task.initiator_type || card.initiator_type || 'AI';
+                  const initiatorBadge = initiatorType === 'SCHOOL_RECIPIENT' ? (
+                    <span className="inline-flex items-center space-x-1 px-2.5 py-0.5 rounded-full text-[11px] font-bold bg-indigo-100 text-indigo-900 border border-indigo-200">
+                      {t('hitl.initiatorPeerRequest')}
+                    </span>
+                  ) : initiatorType === 'SCHOOL_DONOR' ? (
+                    <span className="inline-flex items-center space-x-1 px-2.5 py-0.5 rounded-full text-[11px] font-bold bg-amber-100 text-amber-900 border border-amber-200">
+                      {t('hitl.initiatorPeerOffer')}
+                    </span>
+                  ) : (
+                    <span className="inline-flex items-center space-x-1 px-2.5 py-0.5 rounded-full text-[11px] font-bold bg-amber-200 text-amber-900">
+                      <Sparkles className="w-3 h-3 text-amber-600 mr-1" />
+                      {t('hitl.initiatorAi')}
+                    </span>
+                  );
 
                   const roleBadge = isRecipient ? (
                     <span className="inline-flex items-center px-2 py-0.5 rounded-md text-[10px] font-extrabold bg-emerald-100 text-emerald-800 border border-emerald-300">
@@ -157,10 +187,7 @@ export const HITLDrawer = ({
                       <div className="flex items-start justify-between gap-2">
                         <div className="space-y-1">
                           <div className="flex items-center space-x-2 flex-wrap gap-1">
-                            <span className="inline-flex items-center space-x-1 px-2.5 py-0.5 rounded-full text-[11px] font-bold bg-amber-200 text-amber-900">
-                              <Sparkles className="w-3 h-3 text-amber-600 mr-1" />
-                              {t('hitl.agentBadge')}
-                            </span>
+                            {initiatorBadge}
                             {roleBadge}
                           </div>
                           <h4 className="font-bold text-base text-slate-900">
@@ -171,6 +198,13 @@ export const HITLDrawer = ({
                           {card.quantity} {t('hero.units.items')}
                         </span>
                       </div>
+
+                      {/* Adaptive Stock Warning if stock was reduced */}
+                      {card.stock_adjusted && (
+                        <div className="p-2.5 bg-amber-100/90 border border-amber-300 rounded-xl text-xs font-semibold text-amber-900 flex items-center space-x-1.5">
+                          <span>{t('hitl.stockAdjustedWarning', { count: card.quantity })}</span>
+                        </div>
+                      )}
 
                       {/* Route Map Card */}
                       <div className="bg-white p-3.5 rounded-xl border border-slate-200 shadow-2xs space-y-2">
@@ -242,30 +276,43 @@ export const HITLDrawer = ({
                         </div>
                       )}
 
-                      {/* HITL Action Buttons */}
+                      {/* Action Buttons: If user school initiated the proposal, they can withdraw it! */}
                       {!protocolCode && (
-                        <div className="grid grid-cols-2 gap-3 pt-2">
-                          <button
-                            onClick={() => handleReject(task.id)}
-                            disabled={isProcessing}
-                            className="flex items-center justify-center space-x-1.5 py-2.5 px-3 rounded-xl border border-slate-300 bg-white hover:bg-slate-50 text-slate-700 text-xs font-bold transition-all disabled:opacity-50"
-                          >
-                            <XCircle className="w-4 h-4 text-slate-400" />
-                            <span>{t('hitl.rejectBtn')}</span>
-                          </button>
-                          <button
-                            onClick={() => handleApprove(task.id)}
-                            disabled={isProcessing}
-                            className="flex items-center justify-center space-x-1.5 py-2.5 px-3 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white text-xs font-bold transition-all shadow-sm shadow-emerald-600/30 disabled:opacity-50"
-                          >
-                            {isProcessing ? (
-                              <Loader2 className="w-4 h-4 animate-spin" />
-                            ) : (
-                              <CheckCircle className="w-4 h-4 text-emerald-200" />
-                            )}
-                            <span>{approveBtnLabel}</span>
-                          </button>
-                        </div>
+                        isInitiator ? (
+                          <div className="pt-2">
+                            <button
+                              onClick={() => handleWithdraw(task.id)}
+                              disabled={isProcessing}
+                              className="w-full flex items-center justify-center space-x-1.5 py-2.5 px-3 rounded-xl border border-rose-300 bg-rose-50 hover:bg-rose-100 text-rose-700 text-xs font-bold transition-all disabled:opacity-50"
+                            >
+                              <XCircle className="w-4 h-4 text-rose-500" />
+                              <span>{isProcessing ? t('hitl.withdrawing') : t('hitl.withdrawBtn')}</span>
+                            </button>
+                          </div>
+                        ) : (
+                          <div className="grid grid-cols-2 gap-3 pt-2">
+                            <button
+                              onClick={() => handleReject(task.id)}
+                              disabled={isProcessing}
+                              className="flex items-center justify-center space-x-1.5 py-2.5 px-3 rounded-xl border border-slate-300 bg-white hover:bg-slate-50 text-slate-700 text-xs font-bold transition-all disabled:opacity-50"
+                            >
+                              <XCircle className="w-4 h-4 text-slate-400" />
+                              <span>{t('hitl.rejectBtn')}</span>
+                            </button>
+                            <button
+                              onClick={() => handleApprove(task.id)}
+                              disabled={isProcessing}
+                              className="flex items-center justify-center space-x-1.5 py-2.5 px-3 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white text-xs font-bold transition-all shadow-sm shadow-emerald-600/30 disabled:opacity-50"
+                            >
+                              {isProcessing ? (
+                                <Loader2 className="w-4 h-4 animate-spin" />
+                              ) : (
+                                <CheckCircle className="w-4 h-4 text-emerald-200" />
+                              )}
+                              <span>{approveBtnLabel}</span>
+                            </button>
+                          </div>
+                        )
                       )}
 
                     </div>

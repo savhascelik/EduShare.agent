@@ -70,7 +70,11 @@
       "noSurplus": "Kayıtlı fazla eşya yok",
       "noNeeds": "Kayıtlı ihtiyaç talebi yok",
       "offerSurplus": "Eşya Paylaş",
-      "requestNeed": "İhtiyaç Bildir"
+      "requestNeed": "İhtiyaç Bildir",
+      "requestItem": "Talep Et",
+      "fulfillNeed": "Karşıla",
+      "requestPrompt": "Kaç adet talep etmek istiyorsunuz? (Mevcut: {{max}})",
+      "peerProposalSent": "Talebiniz başarıyla diğer okula iletildi."
     }
   },
   "hitl": {
@@ -86,6 +90,17 @@
     "reasoningTitle": "Yapay Zeka Karar Gerekçesi",
     "rejectBtn": "Reddet",
     "approveBtn": "Onayla & Başlat",
+    "withdrawBtn": "Teklifi Geri Çek",
+    "withdrawing": "Geri Çekiliyor...",
+    "withdrawSuccess": "Teklif başarıyla geri çekildi.",
+    "initiatorAi": "🤖 Otonom YZ Eşleştirmesi",
+    "initiatorPeerRequest": "📥 Doğrudan Okul Talebi",
+    "initiatorPeerOffer": "📤 Doğrudan Okul Teklifi",
+    "stockAdjustedWarning": "⚠️ Stok Güncellemesi: Diğer bir transfer sebebiyle mevcut stok azaldı ve teklif {{count}} adet olarak güncellendi.",
+    "statusWithdrawn": "Geri Çekildi",
+    "statusSuperseded": "Stok Tükendi - Arşivlendi",
+    "statusMerged": "Teklif Birleştirildi",
+    "stockExhaustedConflict": "Bu eşyanın stoku başka bir okulun transferiyle tükendi.",
     "roleRecipient": "Alıcı Okul / Malzeme Kabulü",
     "roleDonor": "Devreden Okul / Sevk İzni",
     "roleCoordination": "İlçe Koordinasyon Onayı",

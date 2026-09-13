@@ -46,6 +46,7 @@ class SurplusItem(Base):
     item_category = Column(String(100), nullable=False)
     quantity = Column(Integer, nullable=False, default=1)
     allocated_quantity = Column(Integer, default=0)
+    reserved_quantity = Column(Integer, default=0)
     condition_rating = Column(String(50), default="İyi") # 'Yeni', 'İyi', 'Az Kullanılmış', 'Bakım Gerektirir'
     image_url = Column(Text, nullable=True)
     estimated_unit_value_tl = Column(Float, default=1000.0)
@@ -54,6 +55,7 @@ class SurplusItem(Base):
 
     school = relationship("School", back_populates="surplus_items")
     transfers = relationship("Transfer", back_populates="surplus_item")
+    ledger_entries = relationship("StockLedger", back_populates="surplus_item", cascade="all, delete-orphan")
 
 
 class NeedRequest(Base):
@@ -76,12 +78,34 @@ class AgentTask(Base):
     __tablename__ = "agent_tasks"
 
     id = Column(String(64), primary_key=True, default=generate_uuid)
-    task_type = Column(String(50), nullable=False) # MATCH_SURPLUS, MATCH_NEED
+    task_type = Column(String(50), nullable=False) # MATCH_SURPLUS, MATCH_NEED, PEER_REQUEST, PEER_OFFER
     source_id = Column(String(64), nullable=False) # surplus_item_id or need_request_id
-    status = Column(String(50), default="PENDING") # PENDING, PROCESSING, AWAITING_HUMAN_APPROVAL, COMPLETED, REJECTED
+    initiator_type = Column(String(50), default="AI") # 'AI', 'SCHOOL_RECIPIENT', 'SCHOOL_DONOR'
+    initiator_school_id = Column(String(64), ForeignKey("schools.id"), nullable=True)
+    target_school_id = Column(String(64), ForeignKey("schools.id"), nullable=True)
+    status = Column(String(50), default="PENDING") # PENDING, PROCESSING, AWAITING_HUMAN_APPROVAL, COMPLETED, REJECTED, WITHDRAWN, SUPERSEDED, MERGED
     match_payload = Column(JSON, nullable=True) # Full details for HITL card
     created_at = Column(DateTime, default=datetime.utcnow)
     updated_at = Column(DateTime, default=datetime.utcnow, onupdate=datetime.utcnow)
+
+
+class StockLedger(Base):
+    __tablename__ = "stock_ledgers"
+
+    id = Column(String(64), primary_key=True, default=generate_uuid)
+    surplus_item_id = Column(String(64), ForeignKey("surplus_items.id"), nullable=False)
+    school_id = Column(String(64), ForeignKey("schools.id"), nullable=False)
+    movement_type = Column(String(50), nullable=False) # INITIAL_REGISTRATION, TRANSFER_OUT, RESERVATION_HOLD, RESERVATION_RELEASE, ADJUSTMENT
+    quantity_delta = Column(Integer, nullable=False) # e.g. +12, -2, -5
+    balance_after = Column(Integer, nullable=False) # remaining available physical stock
+    related_task_id = Column(String(64), nullable=True)
+    related_transfer_id = Column(String(64), nullable=True)
+    protocol_code = Column(String(64), nullable=True)
+    note = Column(Text, nullable=True)
+    created_at = Column(DateTime, default=datetime.utcnow)
+
+    surplus_item = relationship("SurplusItem", back_populates="ledger_entries")
+    school = relationship("School")
 
 
 class Transfer(Base):

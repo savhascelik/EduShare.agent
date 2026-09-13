@@ -79,6 +79,7 @@ class SurplusItemResponse(BaseModel):
     item_category: str
     quantity: int
     allocated_quantity: Optional[int] = 0
+    reserved_quantity: Optional[int] = 0
     condition_rating: str
     image_url: Optional[str]
     estimated_unit_value_tl: float
@@ -117,6 +118,9 @@ class AgentTaskResponse(BaseModel):
     id: str
     task_type: str
     source_id: str
+    initiator_type: Optional[str] = "AI"
+    initiator_school_id: Optional[str] = None
+    target_school_id: Optional[str] = None
     status: str
     match_payload: Optional[Dict[str, Any]]
     created_at: datetime
@@ -125,8 +129,31 @@ class AgentTaskResponse(BaseModel):
     class Config:
         from_attributes = True
 
+class PeerProposalCreateRequest(BaseModel):
+    surplus_item_id: str
+    need_id: Optional[str] = None
+    quantity: int = 1
+    proposal_type: str = "REQUEST" # "REQUEST" (recipient requests) or "OFFER" (donor offers)
+    notes: Optional[str] = None
+
+class StockLedgerResponse(BaseModel):
+    id: str
+    surplus_item_id: str
+    school_id: str
+    movement_type: str
+    quantity_delta: int
+    balance_after: int
+    related_task_id: Optional[str] = None
+    related_transfer_id: Optional[str] = None
+    protocol_code: Optional[str] = None
+    note: Optional[str] = None
+    created_at: datetime
+
+    class Config:
+        from_attributes = True
+
 class HITLApprovalAction(BaseModel):
-    action: str # "APPROVE" or "REJECT"
+    action: str # "APPROVE" or "REJECT" or "WITHDRAW"
     notes: Optional[str] = None
 
 # Transfer Schemas

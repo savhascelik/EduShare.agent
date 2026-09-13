@@ -69,7 +69,11 @@
       "noSurplus": "Kein aktiver Überschuss gelistet",
       "noNeeds": "Kein aktiver Bedarf gemeldet",
       "offerSurplus": "Artikel anbieten",
-      "requestNeed": "Bedarf melden"
+      "requestNeed": "Bedarf melden",
+      "requestItem": "Anfordern",
+      "fulfillNeed": "Erfüllen",
+      "requestPrompt": "Wie viele Einheiten möchten Sie anfordern? (Verfügbar: {{max}})",
+      "peerProposalSent": "Ihre Anfrage wurde erfolgreich an die Schule gesendet."
     }
   },
   "hitl": {
@@ -85,6 +89,17 @@
     "reasoningTitle": "KI-Entscheidungsbegründung",
     "rejectBtn": "Ablehnen",
     "approveBtn": "Freigeben & Starten",
+    "withdrawBtn": "Angebot zurückziehen",
+    "withdrawing": "Wird zurückgezogen...",
+    "withdrawSuccess": "Angebot wurde erfolgreich zurückgezogen.",
+    "initiatorAi": "🤖 Autonomer KI-Vorschlag",
+    "initiatorPeerRequest": "📥 Direkte Schulanfrage",
+    "initiatorPeerOffer": "📤 Direktes Schulangebot",
+    "stockAdjustedWarning": "⚠️ Bestandsaktualisierung: Der verfügbare Bestand wurde reduziert; Menge auf {{count}} Stück angepasst.",
+    "statusWithdrawn": "Zurückgezogen",
+    "statusSuperseded": "Bestand erschöpft - Archiviert",
+    "statusMerged": "Angebot zusammengeführt",
+    "stockExhaustedConflict": "Der Bestand dieses Artikels ist durch einen anderen Transfer erschöpft.",
     "roleRecipient": "Empfängerschule / Annahme",
     "roleDonor": "Abgebende Schule / Versandfreigabe",
     "roleCoordination": "Bezirkliche Koordinationsfreigabe",

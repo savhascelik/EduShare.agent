@@ -70,7 +70,11 @@
       "noSurplus": "No active surplus listed",
       "noNeeds": "No active needs requested",
       "offerSurplus": "Offer Item",
-      "requestNeed": "Request Need"
+      "requestNeed": "Request Need",
+      "requestItem": "Request Item",
+      "fulfillNeed": "Fulfill",
+      "requestPrompt": "How many units would you like to request? (Available: {{max}})",
+      "peerProposalSent": "Your request has been successfully sent to the school."
     }
   },
   "hitl": {
@@ -86,6 +90,17 @@
     "reasoningTitle": "AI Decision Rationale",
     "rejectBtn": "Reject",
     "approveBtn": "Approve & Dispatch",
+    "withdrawBtn": "Withdraw Offer",
+    "withdrawing": "Withdrawing...",
+    "withdrawSuccess": "Offer was successfully withdrawn.",
+    "initiatorAi": "🤖 Autonomous AI Match",
+    "initiatorPeerRequest": "📥 Direct School Request",
+    "initiatorPeerOffer": "📤 Direct School Offer",
+    "stockAdjustedWarning": "⚠️ Stock Update: Available stock decreased due to another transfer; proposal adjusted to {{count}} units.",
+    "statusWithdrawn": "Withdrawn",
+    "statusSuperseded": "Stock Exhausted - Archived",
+    "statusMerged": "Proposal Merged",
+    "stockExhaustedConflict": "Item stock was exhausted by another transfer.",
     "roleRecipient": "Recipient School / Acceptance",
     "roleDonor": "Donor School / Dispatch Permission",
     "roleCoordination": "District Coordination Approval",

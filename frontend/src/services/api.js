@@ -52,6 +52,9 @@ export const api = {
   getTasks: (params) => client.get('/agent/tasks', { params }).then((res) => res.data),
   approveTask: (taskId) => client.post(`/agent/approve/${taskId}`).then((res) => res.data),
   rejectTask: (taskId) => client.post(`/agent/reject/${taskId}`).then((res) => res.data),
+  withdrawTask: (taskId) => client.post(`/agent/tasks/${taskId}/withdraw`).then((res) => res.data),
+  createPeerProposal: (data) => client.post('/agent/peer-proposal', data).then((res) => res.data),
+  getSurplusLedger: (surplusId) => client.get(`/agent/surplus/${surplusId}/ledger`).then((res) => res.data),
   getPulse: () => client.get('/agent/pulse').then((res) => res.data),
   triggerSweep: () => client.post('/agent/sweep').then((res) => res.data),
 };

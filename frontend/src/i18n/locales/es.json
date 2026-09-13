@@ -69,7 +69,11 @@
       "noSurplus": "No hay excedentes activos registrados",
       "noNeeds": "No hay necesidades activas registradas",
       "offerSurplus": "Ofrecer artículo",
-      "requestNeed": "Solicitar necesidad"
+      "requestNeed": "Solicitar necesidad",
+      "requestItem": "Solicitar",
+      "fulfillNeed": "Cumplir",
+      "requestPrompt": "¿Cuántas unidades desea solicitar? (Disponible: {{max}})",
+      "peerProposalSent": "Su solicitud ha sido enviada con éxito a la escuela."
     }
   },
   "hitl": {
@@ -85,6 +89,17 @@
     "reasoningTitle": "Fundamento de la IA",
     "rejectBtn": "Rechazar",
     "approveBtn": "Aprobar y Despachar",
+    "withdrawBtn": "Retirar Propuesta",
+    "withdrawing": "Retirando...",
+    "withdrawSuccess": "La propuesta fue retirada con éxito.",
+    "initiatorAi": "🤖 Coincidencia IA Autónoma",
+    "initiatorPeerRequest": "📥 Solicitud Directa Escolar",
+    "initiatorPeerOffer": "📤 Oferta Directa Escolar",
+    "stockAdjustedWarning": "⚠️ Actualización de Stock: El stock disponible disminuyó; propuesta ajustada a {{count}} unidades.",
+    "statusWithdrawn": "Retirada",
+    "statusSuperseded": "Stock Agotado - Archivada",
+    "statusMerged": "Propuesta Fusionada",
+    "stockExhaustedConflict": "El stock de este artículo se agotó con otra transferencia.",
     "roleRecipient": "Escuela Receptora / Aceptación",
     "roleDonor": "Escuela Donante / Permiso de Despacho",
     "roleCoordination": "Aprobación de Coordinación Distrital",

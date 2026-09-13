@@ -5,7 +5,7 @@ from typing import List, Optional
 from fastapi import APIRouter, Depends, HTTPException, UploadFile, File, Form, status
 from sqlalchemy.orm import Session
 from app.database import get_db
-from app.models import School, SurplusItem, AgentTask
+from app.models import School, SurplusItem, AgentTask, StockLedger
 from app.schemas import SurplusItemCreate, SurplusItemResponse, VisionAnalyzeResponse
 from app.auth import get_current_school, get_optional_current_school
 from app.vision import analyze_surplus_image
@@ -18,14 +18,10 @@ router = APIRouter(prefix="/api/surplus", tags=["Surplus Items"])
 async def analyze_photo(
     file: UploadFile = File(...)
 ):
-    """
-    Multimodal Vision endpoint: Inspects an uploaded surplus equipment photo
-    using Amazon Bedrock and extracts structured inventory attributes.
-    """
-    if not file.content_type.startswith("image/"):
+    if not settings.AWS_ACCESS_KEY_ID or not settings.AWS_SECRET_ACCESS_KEY:
         raise HTTPException(
-            status_code=status.HTTP_400_BAD_REQUEST,
-            detail="Lütfen geçerli bir görsel dosyası (JPEG, PNG, WebP) yükleyin."
+            status_code=status.HTTP_503_SERVICE_UNAVAILABLE,
+            detail="AWS Bedrock credentials are not configured on the server."
         )
     
     contents = await file.read()
@@ -47,6 +43,8 @@ async def create_surplus_item(
         raw_text=payload.raw_text,
         item_category=payload.item_category,
         quantity=payload.quantity,
+        allocated_quantity=0,
+        reserved_quantity=0,
         condition_rating=payload.condition_rating or "İyi",
         image_url=payload.image_url,
         estimated_unit_value_tl=payload.estimated_unit_value_tl or 1000.0,
@@ -55,6 +53,18 @@ async def create_surplus_item(
     db.add(item)
     db.commit()
     db.refresh(item)
+
+    # Initial Stock Ledger Movement
+    init_ledger = StockLedger(
+        surplus_item_id=item.id,
+        school_id=current_school.id,
+        movement_type="INITIAL_REGISTRATION",
+        quantity_delta=item.quantity,
+        balance_after=item.quantity,
+        note=f"{current_school.name} tarafından ilk envanter kaydı oluşturuldu."
+    )
+    db.add(init_ledger)
+    db.commit()
 
     # Autonomous Task Enqueue
     task = AgentTask(
