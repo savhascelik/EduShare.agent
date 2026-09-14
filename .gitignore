@@ -20,3 +20,7 @@ Thumbs.db
 .idea/
 *.db
 *.sqlite3
+
+# Drafts & Submissions
+DEVPOST_*.md
+*.draft.md
