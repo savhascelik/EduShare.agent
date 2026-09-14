@@ -213,6 +213,24 @@ def create_hitl_approval_card(
         to_school = db.query(School).filter(School.id == to_school_id).first()
         item = db.query(SurplusItem).filter(SurplusItem.id == surplus_item_id).first()
         
+        # Safeguard: Check if an active proposal already exists for this surplus item
+        existing_active = db.query(AgentTask).filter(
+            AgentTask.id != task_id,
+            AgentTask.status.in_(["PENDING_RECIPIENT_REQUEST", "AWAITING_DONOR_APPROVAL", "AWAITING_HUMAN_APPROVAL"])
+        ).all()
+        for ea in existing_active:
+            ea_p = ea.match_payload or {}
+            if ea_p.get("surplus_item_id") == surplus_item_id:
+                task = db.query(AgentTask).filter(AgentTask.id == task_id).first()
+                if task:
+                    task.status = "SUPERSEDED"
+                    task.match_payload = {"superseded_reason": f"Active proposal already exists for item ({ea.id})"}
+                    db.commit()
+                return json.dumps({
+                    "status": "SUPERSEDED",
+                    "message": f"Bu eşya için zaten bekleyen bir teklif var ({ea.id}). İkinci bir teklif oluşturulmadı."
+                }, ensure_ascii=False)
+
         card_payload = {
             "title": f"EduShare Lojistik Önerisi: {item.title if item else 'Eğitim Malzemesi'}",
             "from_school_id": from_school_id,

@@ -56,7 +56,21 @@ def get_agent_tasks(
             if item and item.school_id == current_school.id:
                 user_tasks.append(t)
                 
-    return [AgentTaskResponse.from_orm(t) for t in user_tasks]
+    # Deduplicate active proposals: only expose the single latest proposal per (surplus_item_id, to_school_id)
+    deduped_tasks = []
+    seen_active_keys = set()
+    for t in user_tasks:
+        if t.status in ["PENDING_RECIPIENT_REQUEST", "AWAITING_DONOR_APPROVAL", "AWAITING_HUMAN_APPROVAL"]:
+            payload = t.match_payload or {}
+            s_id = payload.get("surplus_item_id") or t.source_id
+            to_id = payload.get("to_school_id")
+            key = (s_id, to_id) if (s_id and to_id) else (s_id or t.id)
+            if key in seen_active_keys:
+                continue
+            seen_active_keys.add(key)
+        deduped_tasks.append(t)
+
+    return [AgentTaskResponse.from_orm(t) for t in deduped_tasks]
 
 @router.post("/approve/{task_id}")
 async def approve_transfer_task(

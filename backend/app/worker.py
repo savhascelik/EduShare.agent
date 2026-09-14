@@ -9,14 +9,38 @@ from app.sse import sse_manager
 logger = logging.getLogger("edushare_worker")
 logging.basicConfig(level=logging.INFO)
 
+ACTIVE_TASK_STATUSES = [
+    "PENDING",
+    "PROCESSING",
+    "AWAITING_HUMAN_APPROVAL",
+    "PENDING_RECIPIENT_REQUEST",
+    "AWAITING_DONOR_APPROVAL"
+]
+
 async def process_single_task(task_id: str):
-    """Processes a single pending agent task using the Strands Agent."""
+    """Processes a single pending agent task using the Strands Agent with concurrency and duplicate safeguards."""
     db: Session = SessionLocal()
     try:
         task = db.query(AgentTask).filter(AgentTask.id == task_id).first()
         if not task or task.status != "PENDING":
             return
             
+        # Concurrency & Duplicate Gate:
+        # If this source_id ALREADY has an active task in progress or awaiting approval,
+        # supersede this new task immediately to prevent race conditions & duplicate evaluations.
+        if task.source_id:
+            existing_active = db.query(AgentTask).filter(
+                AgentTask.id != task.id,
+                AgentTask.source_id == task.source_id,
+                AgentTask.status.in_(["PROCESSING", "AWAITING_HUMAN_APPROVAL", "PENDING_RECIPIENT_REQUEST", "AWAITING_DONOR_APPROVAL"])
+            ).first()
+            if existing_active:
+                logger.info(f"Task {task.id} superseded: source {task.source_id} already has active proposal {existing_active.id}")
+                task.status = "SUPERSEDED"
+                task.match_payload = {"superseded_reason": f"Active proposal already pending ({existing_active.id})"}
+                db.commit()
+                return
+
         task.status = "PROCESSING"
         db.commit()
         
@@ -24,8 +48,9 @@ async def process_single_task(task_id: str):
         
         if task.task_type == "MATCH_SURPLUS":
             item = db.query(SurplusItem).filter(SurplusItem.id == task.source_id).first()
-            if not item:
-                task.status = "REJECTED"
+            if not item or item.status != "AVAILABLE" or item.quantity <= 0:
+                task.status = "SUPERSEDED"
+                task.match_payload = {"superseded_reason": "Item no longer available"}
                 db.commit()
                 return
             source_school = db.query(School).filter(School.id == item.school_id).first()
@@ -66,8 +91,9 @@ async def process_single_task(task_id: str):
 
         elif task.task_type == "MATCH_NEED":
             need = db.query(NeedRequest).filter(NeedRequest.id == task.source_id).first()
-            if not need:
-                task.status = "REJECTED"
+            if not need or need.status != "OPEN" or need.quantity_needed <= 0:
+                task.status = "SUPERSEDED"
+                task.match_payload = {"superseded_reason": "Need no longer open"}
                 db.commit()
                 return
             target_school = db.query(School).filter(School.id == need.school_id).first()
@@ -121,41 +147,61 @@ async def run_autonomous_inventory_sweep():
     """
     Autonomous Proactive Sweeper:
     Periodically checks if any unassigned surplus items can fulfill open needs,
-    ensuring continuous autonomous background matching without human prompting.
+    ensuring continuous autonomous background matching without human prompting,
+    while strictly preventing duplicate evaluations for items with existing pending proposals.
     """
     db: Session = SessionLocal()
     try:
-        active_task_source_ids = {
-            t.source_id for t in db.query(AgentTask).filter(
-                AgentTask.status.in_(["PENDING", "PROCESSING", "AWAITING_HUMAN_APPROVAL"])
-            ).all()
-        }
+        active_tasks = db.query(AgentTask).filter(
+            AgentTask.status.in_(ACTIVE_TASK_STATUSES)
+        ).all()
+        
+        active_source_ids = {t.source_id for t in active_tasks if t.source_id}
+        active_matched_surplus_ids = set()
+        active_matched_need_ids = set()
+
+        for t in active_tasks:
+            p = t.match_payload or {}
+            s_id = p.get("surplus_item_id")
+            n_id = p.get("need_id")
+            if s_id:
+                active_matched_surplus_ids.add(s_id)
+            if n_id:
+                active_matched_need_ids.add(n_id)
         
         available_surplus = db.query(SurplusItem).filter(
-            SurplusItem.status == "AVAILABLE"
+            SurplusItem.status == "AVAILABLE",
+            SurplusItem.quantity > 0
         ).all()
         
         open_needs = db.query(NeedRequest).filter(
-            NeedRequest.status == "OPEN"
+            NeedRequest.status == "OPEN",
+            NeedRequest.quantity_needed > 0
         ).all()
         
         if not open_needs or not available_surplus:
             return
             
         for surplus in available_surplus:
-            if surplus.id in active_task_source_ids:
+            # Skip if already being evaluated or awaiting approval
+            if surplus.id in active_source_ids or surplus.id in active_matched_surplus_ids:
                 continue
                 
-            has_matching_need = any(
-                surplus.item_category.lower() in n.item_category.lower() or
-                n.item_category.lower() in surplus.item_category.lower() or
-                surplus.item_category == "Genel Donanım"
-                for n in open_needs
+            matching_need = next((
+                n for n in open_needs
                 if n.school_id != surplus.school_id
-            )
+                and n.id not in active_source_ids
+                and n.id not in active_matched_need_ids
+                and (
+                    surplus.item_category.lower() in n.item_category.lower() or
+                    n.item_category.lower() in surplus.item_category.lower() or
+                    surplus.item_category == "Genel Donanım" or
+                    n.item_category == "Genel Donanım"
+                )
+            ), None)
             
-            if has_matching_need:
-                logger.info(f"Autonomous Sweeper: Discovered unassigned surplus {surplus.id} with matching open needs. Enqueuing agent task...")
+            if matching_need:
+                logger.info(f"Autonomous Sweeper: Discovered unassigned surplus {surplus.id} with matching open need {matching_need.id}. Enqueuing agent task...")
                 new_task = AgentTask(
                     task_type="MATCH_SURPLUS",
                     source_id=surplus.id,
@@ -163,7 +209,7 @@ async def run_autonomous_inventory_sweep():
                 )
                 db.add(new_task)
                 db.commit()
-                await process_single_task(new_task.id)
+                # Task is committed as PENDING; the queue loop will process it on next tick
                 break
     except Exception as e:
         logger.error(f"Error in autonomous inventory sweep: {e}", exc_info=True)
