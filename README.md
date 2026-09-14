@@ -2,7 +2,6 @@
 
 > **Track:** Good Neighbor Agents  
 > **Hackathon:** Agents for Humans Hackathon 2026 (Devpost & AWS)  
-> **Live Cloud URL:** [http://ec2-54-210-91-153.compute-1.amazonaws.com/](http://ec2-54-210-91-153.compute-1.amazonaws.com/)  
 > **Repository:** [https://github.com/savhascelik/EduShare.agent](https://github.com/savhascelik/EduShare.agent)
 
 ---
